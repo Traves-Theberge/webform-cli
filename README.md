@@ -234,5 +234,5 @@ This project is licensed under the Apache 2.0 License - see the LICENSE file for
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/yourusername">Traves Theberge</a></sub>
+  <sub>Built with ❤️ by <a href="https://github.com/Traves-Theberge">Traves Theberge</a></sub>
 </div>
