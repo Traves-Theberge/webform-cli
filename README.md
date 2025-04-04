@@ -17,6 +17,10 @@
 
 WebForm is a powerful command-line tool that combines web scraping with AI-powered data formatting. It allows you to extract structured data from websites using customizable schemas and process it using Google's Gemini language model.
 
+## NOTE FROM DEVELOPER 
+
+Please read the TERMS.MD - This is an experimental CLI TOOL.
+
 ### Key Features
 
 - 🔍 **Smart Extraction**: Extract data from any website using CSS selectors
