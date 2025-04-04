@@ -223,13 +223,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
+This project is licensed under the MIT - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
-
-- [Cheerio](https://github.com/cheeriojs/cheerio) for HTML parsing
-- [Google Gemini](https://ai.google.dev/) for AI capabilities
-- [Yargs](https://github.com/yargs/yargs) for command-line argument parsing
 
 ---
 
