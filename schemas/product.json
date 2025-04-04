@@ -1,0 +1,42 @@
+{
+  "selectors": {
+    "productName": "h1.product-title",
+    "productPrice": "span.price",
+    "productDescription": "div.product-description",
+    "productImage": "img.product-image",
+    "productUrl": "link[rel='canonical']",
+    "productCategory": "nav.breadcrumbs span:last-child"
+  },
+  "structure": {
+    "productName": {
+      "type": "string",
+      "description": "The product name or title",
+      "nullable": false
+    },
+    "productPrice": {
+      "type": "string",
+      "description": "The product price",
+      "nullable": true
+    },
+    "productDescription": {
+      "type": "string",
+      "description": "Product description text",
+      "nullable": true
+    },
+    "productImage": {
+      "type": "string",
+      "description": "URL to product image",
+      "nullable": true
+    },
+    "productUrl": {
+      "type": "string",
+      "description": "Canonical URL to product page",
+      "nullable": true
+    },
+    "productCategory": {
+      "type": "string",
+      "description": "Product category",
+      "nullable": true
+    }
+  }
+}

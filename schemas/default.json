@@ -1,0 +1,36 @@
+{
+  "selectors": {
+    "title": "h1.title",
+    "author": "span.author",
+    "date": "time.date",
+    "content": "div.content",
+    "image": "img.main-image"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "The page title",
+      "nullable": false
+    },
+    "author": {
+      "type": "string",
+      "description": "The content author",
+      "nullable": true
+    },
+    "date": {
+      "type": "string",
+      "description": "Publication or update date",
+      "nullable": true
+    },
+    "content": {
+      "type": "string",
+      "description": "Main content text",
+      "nullable": true
+    },
+    "image": {
+      "type": "string",
+      "description": "Main image URL",
+      "nullable": true
+    }
+  }
+}

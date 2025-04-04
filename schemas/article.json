@@ -1,0 +1,48 @@
+{
+  "selectors": {
+    "title": ".athing:first-of-type .titleline > a",
+    "url": ".athing:first-of-type .titleline > a",
+    "score": ".athing:first-of-type + tr .score",
+    "user": ".athing:first-of-type + tr .hnuser",
+    "age": ".athing:first-of-type + tr .age a",
+    "comments": ".athing:first-of-type + tr a:contains('comments')",
+    "rank": ".athing:first-of-type .rank"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "The article title",
+      "nullable": false
+    },
+    "url": {
+      "type": "string",
+      "description": "The URL of the article",
+      "nullable": true
+    },
+    "score": {
+      "type": "string",
+      "description": "Article score",
+      "nullable": true
+    },
+    "user": {
+      "type": "string",
+      "description": "The username of the submitter",
+      "nullable": true
+    },
+    "age": {
+      "type": "string",
+      "description": "How long ago the article was submitted",
+      "nullable": true
+    },
+    "comments": {
+      "type": "string",
+      "description": "Number of comments",
+      "nullable": true
+    },
+    "rank": {
+      "type": "string",
+      "description": "Position/rank on the page",
+      "nullable": true
+    }
+  }
+}

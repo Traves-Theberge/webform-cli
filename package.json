@@ -1,0 +1,37 @@
+{
+  "name": "webform-cli",
+  "version": "1.0.0",
+  "description": "A command-line interface tool for scraping and formatting web data.",
+  "main": "dist/cli.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "dev": "tsc --watch"
+  },
+  "bin": {
+    "webform": "dist/cli.js"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^1.2.6",
+    "ai": "^4.3.0",
+    "axios": "1.8.4",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/cheerio": "^0.22.0",
+    "@types/yargs": "^17.0.0",
+    "typescript": "5.8.2"
+  },
+  "keywords": [
+    "CLI",
+    "web scraping",
+    "data extraction",
+    "Gemini API"
+  ],
+  "author": "Traves Theberge",
+  "license": "Apache-2.0"
+}
