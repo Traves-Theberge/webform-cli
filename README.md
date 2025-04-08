@@ -4,7 +4,7 @@
 
 ![WebForm CLI Logo](https://img.shields.io/badge/WebForm-CLI-blue?style=for-the-badge&logo=node.js)
 
-[![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.x-brightgreen.svg)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-%5E5.0.0-blue.svg)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/badge/npm-1.0.0-red.svg)](https://www.npmjs.com/package/webform-cli)
@@ -15,7 +15,7 @@
 
 ## 🌟 Overview
 
-WebForm is a powerful command-line tool that combines web scraping with AI-powered data formatting. It allows you to extract structured data from websites using customizable schemas and process it using Google's Gemini language model.
+WebForm is a command-line tool that combines web scraping with AI-powered data formatting. It allows you to extract unstructured data from websites using customizable schemas and process it using Google's Gemini language model and output the strucutued schema.
 
 ## NOTE FROM DEVELOPER 
 
