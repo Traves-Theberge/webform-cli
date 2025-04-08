@@ -46,7 +46,7 @@ npm install -g webform-cli
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/webform-cli.git
+git clone https://github.com/Traves-Theberge/webform-cli.git
 
 # Navigate to project directory
 cd webform-cli

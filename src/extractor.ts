@@ -1,4 +1,5 @@
 import cheerio from 'cheerio';
+import type { ExtractorSchema, StructuredOutput, SchemaType, StructuredSchema } from './types';
 
 export function extractData(html: cheerio.CheerioAPI, schema: Record<string, string>): Record<string, any> {
     const extractedData: Record<string, any> = {};

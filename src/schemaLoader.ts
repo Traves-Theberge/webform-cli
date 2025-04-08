@@ -1,6 +1,51 @@
 import { promises as fs } from 'fs';
 import * as fsSync from 'fs';
 import path from 'path';
+import Ajv from 'ajv';
+
+// Initialize JSON schema validator
+const ajv = new Ajv({
+    allErrors: true,
+    verbose: true,
+    strict: false
+});
+
+// Define meta-schema for validating webform schemas
+const schemaMetaSchema = {
+    type: "object",
+    required: ["selectors", "structure"],
+    properties: {
+        selectors: {
+            type: "object",
+            patternProperties: {
+                "^.*$": { type: "string" }
+            }
+        },
+        structure: {
+            type: "object",
+            patternProperties: {
+                "^.*$": {
+                    type: "object",
+                    properties: {
+                        type: { 
+                            type: "string",
+                            enum: ["string", "number", "boolean", "object", "array"]
+                        },
+                        description: { type: "string" },
+                        nullable: { type: "boolean" },
+                        format: { type: "string" },
+                        items: { type: "object" },
+                        properties: { type: "object" }
+                    },
+                    required: ["type"]
+                }
+            }
+        }
+    }
+};
+
+// Register the meta-schema
+ajv.addSchema(schemaMetaSchema, 'webform-schema');
 
 // Get the correct project root path
 const getProjectRoot = () => {
@@ -40,22 +85,28 @@ export async function loadSchema(schemaName: string): Promise<Record<string, str
     const schemaPath = path.join(getProjectRoot(), 'schemas', `${schemaName}.json`);
     try {
         const schemaFile = await fs.readFile(schemaPath, 'utf-8');
-        return JSON.parse(schemaFile);
+        const parsedSchema = JSON.parse(schemaFile);
+        return parsedSchema;
     } catch (error: unknown) {
         if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
             throw new Error(`Schema file not found: ${schemaName}`);
         } else {
-            throw new Error(`Invalid JSON in schema file: ${schemaName}`);
+            throw new Error(`Invalid JSON in schema file: ${schemaName} - ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
 
 export async function listSchemas(): Promise<string[]> {
     const schemasDir = path.join(getProjectRoot(), 'schemas');
-    const files = await fs.readdir(schemasDir);
-    return files
-        .filter(file => file.endsWith('.json'))
-        .map(file => file.replace('.json', ''));
+    try {
+        const files = await fs.readdir(schemasDir);
+        return files
+            .filter(file => file.endsWith('.json'))
+            .map(file => file.replace('.json', ''));
+    } catch (error) {
+        console.error('Error listing schemas:', error);
+        return [];
+    }
 }
 
 export async function viewSchema(schemaName: string): Promise<string> {
@@ -67,13 +118,51 @@ export async function viewSchema(schemaName: string): Promise<string> {
         if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
             throw new Error(`Schema file not found: ${schemaName}`);
         } else {
-            throw new Error(`Error reading schema file: ${schemaName}`);
+            throw new Error(`Error reading schema file: ${schemaName} - ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }
 
 /**
- * Load a structured schema definition
+ * Validate a schema against the schema meta-schema
+ */
+export async function validateSchema(schemaName: string): Promise<{valid: boolean; errors: any[] | null}> {
+    try {
+        // Load the schema
+        const schemaPath = path.join(getProjectRoot(), 'schemas', `${schemaName}.json`);
+        const schemaFile = await fs.readFile(schemaPath, 'utf-8');
+        const schema = JSON.parse(schemaFile);
+        
+        // Convert schema to structured format if needed
+        let structuredSchema;
+        if (isStructuredSchema(schema)) {
+            structuredSchema = parseStructuredSchema(schema);
+        } else {
+            structuredSchema = convertToStructuredSchema(schema);
+        }
+        
+        // Validate against meta-schema
+        const validate = ajv.compile(schemaMetaSchema);
+        const valid = validate(structuredSchema);
+        
+        return {
+            valid: !!valid,
+            errors: validate.errors || null
+        };
+    } catch (error) {
+        return {
+            valid: false,
+            errors: [{
+                message: error instanceof Error ? error.message : String(error),
+                params: {},
+                schemaPath: ''
+            }]
+        };
+    }
+}
+
+/**
+ * Load a structured schema definition with enhanced validation
  */
 export async function loadStructuredSchema(schemaName: string): Promise<ExtractorSchema> {
     const schemaPath = path.join(getProjectRoot(), 'schemas', `${schemaName}.json`);
@@ -83,7 +172,15 @@ export async function loadStructuredSchema(schemaName: string): Promise<Extracto
         
         // Check if it's already a structured schema or needs to be converted
         if (isStructuredSchema(schema)) {
-            return parseStructuredSchema(schema);
+            const parsedSchema = parseStructuredSchema(schema);
+            // Validate the parsed schema
+            const validation = await validateParsedSchema(parsedSchema);
+            if (!validation.valid) {
+                const errorMessages = validation.errors?.map(err => 
+                    `${err.instancePath} ${err.message || ''}`).join('; ');
+                console.warn(`Schema validation warnings: ${errorMessages}`);
+            }
+            return parsedSchema;
         } else {
             // If it's a simple selector map or old format, convert it
             return convertToStructuredSchema(schema);
@@ -95,6 +192,20 @@ export async function loadStructuredSchema(schemaName: string): Promise<Extracto
             throw new Error(`Invalid schema file: ${schemaName} - ${error instanceof Error ? error.message : String(error)}`);
         }
     }
+}
+
+/**
+ * Validate a parsed schema without throwing errors
+ */
+async function validateParsedSchema(schema: any): Promise<{valid: boolean; errors: any[] | null}> {
+    // Validate against meta-schema
+    const validate = ajv.compile(schemaMetaSchema);
+    const valid = validate(schema);
+    
+    return {
+        valid: !!valid,
+        errors: validate.errors || null
+    };
 }
 
 /**

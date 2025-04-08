@@ -15,10 +15,10 @@ export async function setConfig(key: string, value: string): Promise<void> {
     }
 }
 
-export async function getConfig(key: string): Promise<string | undefined> {
+export async function getConfig(key?: string): Promise<string | Record<string, any> | undefined> {
     try {
         const config = await getConfigData();
-        return config[key];
+        return key ? config[key] : config;
     } catch (error) {
         console.error('Error getting configuration:', error);
         throw error;

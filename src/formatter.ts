@@ -8,7 +8,8 @@ import 'dotenv/config'; // Load environment variables
 const createAIProvider = async () => {
     // First try to get the API key from environment variables, then fallback to config file
     const configApiKey = await getConfig('gemini_api_key');
-    const apiKey = getGoogleApiKey(configApiKey);
+    // Fix: Ensure configApiKey is a string before passing to getGoogleApiKey
+    const apiKey = getGoogleApiKey(typeof configApiKey === 'string' ? configApiKey : undefined);
     
     if (!apiKey) {
         throw new Error('Google AI API key not found. Please set it in the .env file or using "webform config set gemini_api_key YOUR_API_KEY"');

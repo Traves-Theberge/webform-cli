@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+// This is the main entry point for the WebForm CLI
+// It ensures proper execution from any environment
+
+const path = require('path');
+const fs = require('fs');
+
+// Check if no arguments were provided, if yes, use 'tutorial' as default
+if (process.argv.length <= 2) {
+  process.argv.push('tutorial');
+}
+
+// Get directory of this script - helps with resolving paths correctly when globally installed
+const scriptDir = __dirname;
+
+// Determine the location of the CLI entry point
+let cliPath;
+try {
+  // Try multiple potential locations to handle both local and global installation
+  const possiblePaths = [
+    // Local development path
+    path.resolve(scriptDir, '../dist/cli.js'),
+    // Global installation path
+    path.resolve(scriptDir, '../lib/cli.js'),
+    // Direct TypeScript source for development
+    path.resolve(scriptDir, '../src/cli.ts')
+  ];
+  
+  // Find the first path that exists
+  cliPath = possiblePaths.find(p => fs.existsSync(p));
+  
+  if (!cliPath) {
+    throw new Error('Could not find CLI entry point. Make sure the project is built with "npm run build"');
+  }
+  
+  // If using TypeScript source directly, register ts-node
+  if (cliPath.endsWith('.ts')) {
+    require('ts-node').register();
+  }
+  
+  // Start the CLI
+  require(cliPath);
+} catch (err) {
+  console.error('\x1b[31mError starting WebForm CLI:\x1b[0m', err.message);
+  console.error('\x1b[33mPlease ensure the CLI is properly built with "npm run build"\x1b[0m');
+  
+  // Show additional debug info to help diagnose path issues
+  console.error('\x1b[33mDebug info:\x1b[0m');
+  console.error(`- Script location: ${scriptDir}`);
+  console.error(`- Current working directory: ${process.cwd()}`);
+  console.error(`- Attempted to load: ${cliPath || 'No valid path found'}`);
+  
+  process.exit(1);
+}
