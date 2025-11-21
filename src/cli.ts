@@ -231,7 +231,134 @@ const yargsInstance = yargs(hideBin(process.argv))
         .example(chalk.yellow('$0 scrape https://example.com --structured --retry 3'), 'Extract with structured validation and retry on failure');
     }, 
     handler: async (argv: any) => {
-      // ... existing handler code ...
+      try {
+        const url = argv.url as string;
+        const schemaName = argv.schema as string || 'default';
+        const outputFormat = argv.output as 'json' | 'text';
+        const savePath = argv.save as string | undefined;
+        const useLLM = argv.llmOutput as boolean;
+        const useStructured = argv.structured as boolean;
+        const includeMetadata = argv.includeMetadata as boolean;
+        const retryCount = argv.retry as number;
+        const verbose = argv.verbose as boolean;
+
+        if (verbose) {
+          console.log(chalk.dim(`\nStarting scrape with options:`));
+          console.log(chalk.dim(`  URL: ${url}`));
+          console.log(chalk.dim(`  Schema: ${schemaName}`));
+          console.log(chalk.dim(`  Format: ${outputFormat}`));
+          console.log(chalk.dim(`  Structured: ${useStructured}`));
+          console.log(chalk.dim(`  LLM Processing: ${useLLM}\n`));
+        }
+
+        // Step 1: Load schema
+        const spinner = createSpinner(`Loading schema: ${chalk.yellow(schemaName)}`);
+        spinner.start();
+
+        let structuredSchema: any = null;
+        let simpleSchema: Record<string, string> = {};
+
+        try {
+          if (useStructured) {
+            structuredSchema = await schemaLoader.loadStructuredSchema(schemaName);
+          } else {
+            const loadedSchema: any = await schemaLoader.loadSchema(schemaName);
+            simpleSchema = loadedSchema.selectors || loadedSchema;
+          }
+          spinner.succeed(chalk.green(`Schema loaded: ${schemaName}`));
+        } catch (error) {
+          spinner.fail(chalk.red(`Failed to load schema: ${schemaName}`));
+          throw error;
+        }
+
+        // Step 2: Fetch HTML
+        const fetchSpinner = createSpinner(`Fetching HTML from ${chalk.cyan(url)}`);
+        fetchSpinner.start();
+
+        let html;
+        try {
+          html = await scraper.fetchHTML(url, { retry: retryCount, verbose });
+          fetchSpinner.succeed(chalk.green(`HTML fetched successfully (${html.length} bytes)`));
+        } catch (error) {
+          fetchSpinner.fail(chalk.red('Failed to fetch HTML'));
+          throw error;
+        }
+
+        // Step 3: Extract data
+        const extractSpinner = createSpinner('Extracting data from HTML');
+        extractSpinner.start();
+
+        let extractedData: any;
+        try {
+          if (useStructured && structuredSchema) {
+            extractedData = scraper.extractDataWithStructuredSchema(html, structuredSchema);
+          } else {
+            extractedData = scraper.extractData(html, simpleSchema);
+          }
+          extractSpinner.succeed(chalk.green(`Data extracted (${Object.keys(extractedData).length} fields)`));
+
+          if (verbose) {
+            console.log(chalk.dim('\nRaw extracted data:'));
+            console.log(chalk.dim(JSON.stringify(extractedData, null, 2)));
+          }
+        } catch (error) {
+          extractSpinner.fail(chalk.red('Failed to extract data'));
+          throw error;
+        }
+
+        // Step 4: Process with LLM if requested
+        let finalOutput: any;
+        if (useLLM) {
+          const llmSpinner = createSpinner('Processing data with Gemini AI');
+          llmSpinner.start();
+
+          try {
+            if (useStructured && structuredSchema?.structure) {
+              finalOutput = await formatStructuredOutput(extractedData, structuredSchema.structure);
+              llmSpinner.succeed(chalk.green('Data processed with AI (structured)'));
+            } else {
+              const processed = await processWithGemini(extractedData);
+              finalOutput = processed;
+              llmSpinner.succeed(chalk.green('Data processed with AI'));
+            }
+          } catch (error) {
+            llmSpinner.warn(chalk.yellow('AI processing failed, using raw data'));
+            console.error(chalk.dim(`Error: ${error instanceof Error ? error.message : String(error)}`));
+            finalOutput = extractedData;
+          }
+        } else {
+          finalOutput = extractedData;
+        }
+
+        // Step 5: Output results
+        console.log(chalk.green('\n✓ Scraping completed successfully!\n'));
+
+        if (useStructured && typeof finalOutput === 'object') {
+          await output.outputStructuredData(
+            finalOutput,
+            outputFormat,
+            savePath,
+            { includeMetadata }
+          );
+        } else {
+          const outputData = typeof finalOutput === 'string'
+            ? finalOutput
+            : JSON.stringify(finalOutput, null, 2);
+          await output.outputFormattedData(outputData, outputFormat, savePath);
+        }
+
+        if (savePath) {
+          console.log(chalk.green(`\n✓ Output saved to: ${chalk.cyan(savePath)}`));
+        }
+
+      } catch (error) {
+        console.error(chalk.red('\n✖ Scraping failed:'), error instanceof Error ? error.message : String(error));
+        if (argv.verbose) {
+          console.error(chalk.dim('\nStack trace:'));
+          console.error(chalk.dim(error instanceof Error ? error.stack : 'No stack trace available'));
+        }
+        process.exit(1);
+      }
     }
   })
   .command({
@@ -465,7 +592,120 @@ const yargsInstance = yargs(hideBin(process.argv))
         .example(chalk.yellow('$0 test https://example.com --schema product'), 'Test product extraction');
     },
     handler: async (argv: any) => {
-      // ... existing handler code ...
+      try {
+        const url = argv.url as string;
+        const schemaName = argv.schema as string;
+        const outputFormat = argv.output as 'json' | 'text';
+        const savePath = argv.save as string | undefined;
+        const verbose = argv.verbose as boolean;
+
+        console.log(boxen(
+          chalk.yellow('⚠️  TEST MODE') + '\n\n' +
+          'This mode extracts raw data without AI processing.\n' +
+          'Useful for testing selectors and debugging schemas.',
+          { padding: 1, borderColor: 'yellow', title: 'Test Mode', titleAlignment: 'center' }
+        ));
+
+        if (verbose) {
+          console.log(chalk.dim(`\nTest extraction with options:`));
+          console.log(chalk.dim(`  URL: ${url}`));
+          console.log(chalk.dim(`  Schema: ${schemaName}\n`));
+        }
+
+        // Step 1: Load schema
+        const spinner = createSpinner(`Loading schema: ${chalk.yellow(schemaName)}`);
+        spinner.start();
+
+        let schema: Record<string, string> = {};
+        try {
+          const loadedSchema: any = await schemaLoader.loadSchema(schemaName);
+          schema = loadedSchema.selectors || loadedSchema;
+          spinner.succeed(chalk.green(`Schema loaded: ${schemaName}`));
+
+          if (verbose) {
+            console.log(chalk.dim('\nSchema selectors:'));
+            console.log(chalk.dim(JSON.stringify(schema, null, 2)));
+          }
+        } catch (error) {
+          spinner.fail(chalk.red(`Failed to load schema: ${schemaName}`));
+          throw error;
+        }
+
+        // Step 2: Fetch HTML
+        const fetchSpinner = createSpinner(`Fetching HTML from ${chalk.cyan(url)}`);
+        fetchSpinner.start();
+
+        let html;
+        try {
+          html = await scraper.fetchHTML(url, { retry: 0, verbose });
+          fetchSpinner.succeed(chalk.green(`HTML fetched successfully (${html.length} bytes)`));
+        } catch (error) {
+          fetchSpinner.fail(chalk.red('Failed to fetch HTML'));
+          throw error;
+        }
+
+        // Step 3: Extract raw data
+        const extractSpinner = createSpinner('Extracting data with selectors');
+        extractSpinner.start();
+
+        let extractedData: any;
+        try {
+          extractedData = scraper.extractData(html, schema);
+          const fieldCount = Object.keys(extractedData).length;
+          const nonEmptyFields = Object.values(extractedData).filter(v =>
+            v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true)
+          ).length;
+
+          extractSpinner.succeed(
+            chalk.green(`Data extracted: ${nonEmptyFields}/${fieldCount} fields have values`)
+          );
+        } catch (error) {
+          extractSpinner.fail(chalk.red('Failed to extract data'));
+          throw error;
+        }
+
+        // Step 4: Display extraction summary
+        console.log(chalk.green('\n✓ Test extraction completed!\n'));
+        console.log(boxen(
+          chalk.cyan('Extraction Summary:') + '\n\n' +
+          Object.entries(extractedData)
+            .map(([key, value]) => {
+              const valuePreview = Array.isArray(value)
+                ? `[${value.length} items]`
+                : value === null || value === ''
+                  ? chalk.red('(empty)')
+                  : String(value).substring(0, 50) + (String(value).length > 50 ? '...' : '');
+              return `  ${chalk.yellow(key)}: ${valuePreview}`;
+            })
+            .join('\n'),
+          { padding: 1, borderColor: 'cyan', title: 'Extracted Fields', titleAlignment: 'center' }
+        ));
+
+        // Step 5: Output results
+        console.log(chalk.cyan('\n📋 Full extracted data:\n'));
+
+        const outputData = JSON.stringify(extractedData, null, 2);
+        await output.outputFormattedData(outputData, outputFormat, savePath);
+
+        if (savePath) {
+          console.log(chalk.green(`\n✓ Test output saved to: ${chalk.cyan(savePath)}`));
+        }
+
+        // Provide helpful tips
+        console.log(chalk.dim('\n💡 Tips:'));
+        console.log(chalk.dim('  • Use --verbose to see more details'));
+        console.log(chalk.dim('  • Empty fields may indicate incorrect selectors'));
+        console.log(chalk.dim('  • Update schema files in the schemas/ directory'));
+        console.log(chalk.dim('  • Run "webform scrape" with same options to use AI processing\n'));
+
+      } catch (error) {
+        console.error(chalk.red('\n✖ Test extraction failed:'), error instanceof Error ? error.message : String(error));
+        if (argv.verbose) {
+          console.error(chalk.dim('\nStack trace:'));
+          console.error(chalk.dim(error instanceof Error ? error.stack : 'No stack trace available'));
+        }
+        process.exit(1);
+      }
     }
   })
   .command({
