@@ -27,10 +27,12 @@ export interface StructuredSchema {
 // Schema mapping configuration for extraction
 export interface SchemaConfig {
   fields: {
-    [key: string]: string | {
-      selector: string;
-      schema?: StructuredSchema;
-    };
+    [key: string]:
+      | string
+      | {
+          selector: string;
+          schema?: StructuredSchema;
+        };
   };
 }
 
