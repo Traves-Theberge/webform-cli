@@ -1,0 +1,66 @@
+{
+  "selectors": {
+    "title": "h1, [slot='title']",
+    "author": "[slot='authorName'], .author",
+    "subreddit": "[slot='subreddit']",
+    "score": "[slot='post-flair']",
+    "comments": "[slot='commentCount']",
+    "timestamp": "time, [slot='timestamp']",
+    "content": "[slot='text-body'], .post-content",
+    "flair": ".flair, [slot='post-flair']",
+    "awards": ".awards, [slot='awardings']",
+    "permalink": "[slot='full-post-link']"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "Post title",
+      "nullable": false
+    },
+    "author": {
+      "type": "string",
+      "description": "Reddit username",
+      "nullable": false
+    },
+    "subreddit": {
+      "type": "string",
+      "description": "Subreddit name",
+      "nullable": false
+    },
+    "score": {
+      "type": "string",
+      "description": "Post score/upvotes",
+      "nullable": true
+    },
+    "comments": {
+      "type": "string",
+      "description": "Number of comments",
+      "nullable": true
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "Post timestamp",
+      "nullable": true
+    },
+    "content": {
+      "type": "string",
+      "description": "Post content/body",
+      "nullable": true
+    },
+    "flair": {
+      "type": "string",
+      "description": "Post flair",
+      "nullable": true
+    },
+    "awards": {
+      "type": "string",
+      "description": "Reddit awards",
+      "nullable": true
+    },
+    "permalink": {
+      "type": "string",
+      "description": "Permanent link to post",
+      "nullable": true
+    }
+  }
+}

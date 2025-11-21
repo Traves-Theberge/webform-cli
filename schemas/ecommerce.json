@@ -1,0 +1,84 @@
+{
+  "selectors": {
+    "productName": "h1.product-title, h1[itemprop='name'], .product-name",
+    "price": ".price, .product-price, [itemprop='price']",
+    "currency": "[itemprop='priceCurrency']",
+    "availability": ".availability, [itemprop='availability']",
+    "description": ".product-description, [itemprop='description']",
+    "brand": ".brand, [itemprop='brand']",
+    "rating": ".rating, [itemprop='ratingValue']",
+    "reviewCount": ".review-count, [itemprop='reviewCount']",
+    "sku": ".sku, [itemprop='sku']",
+    "images": ".product-images img, [itemprop='image']",
+    "category": ".category, .breadcrumb li:last-child, [itemprop='category']",
+    "specifications": ".specs, .specifications, .product-details",
+    "shippingInfo": ".shipping, .delivery-info"
+  },
+  "structure": {
+    "productName": {
+      "type": "string",
+      "description": "Product name",
+      "nullable": false
+    },
+    "price": {
+      "type": "string",
+      "description": "Product price",
+      "nullable": false
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code",
+      "nullable": true
+    },
+    "availability": {
+      "type": "string",
+      "description": "Stock availability",
+      "nullable": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Product description",
+      "nullable": false
+    },
+    "brand": {
+      "type": "string",
+      "description": "Product brand",
+      "nullable": true
+    },
+    "rating": {
+      "type": "string",
+      "description": "Customer rating",
+      "nullable": true
+    },
+    "reviewCount": {
+      "type": "string",
+      "description": "Number of reviews",
+      "nullable": true
+    },
+    "sku": {
+      "type": "string",
+      "description": "Product SKU",
+      "nullable": true
+    },
+    "images": {
+      "type": "array",
+      "description": "Product image URLs",
+      "nullable": true
+    },
+    "category": {
+      "type": "string",
+      "description": "Product category",
+      "nullable": true
+    },
+    "specifications": {
+      "type": "string",
+      "description": "Technical specifications",
+      "nullable": true
+    },
+    "shippingInfo": {
+      "type": "string",
+      "description": "Shipping information",
+      "nullable": true
+    }
+  }
+}

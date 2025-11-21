@@ -1,0 +1,66 @@
+{
+  "selectors": {
+    "title": "h1.job-title, .job-title, h1[itemprop='title']",
+    "company": ".company-name, [itemprop='hiringOrganization']",
+    "location": ".location, [itemprop='jobLocation']",
+    "salary": ".salary, [itemprop='baseSalary']",
+    "type": ".job-type, .employment-type, [itemprop='employmentType']",
+    "description": ".job-description, [itemprop='description']",
+    "requirements": ".requirements, .qualifications",
+    "benefits": ".benefits, .perks",
+    "postedDate": ".posted-date, time[itemprop='datePosted']",
+    "applicationUrl": ".apply-button, a.apply-link, [itemprop='url']"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "Job title",
+      "nullable": false
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name",
+      "nullable": false
+    },
+    "location": {
+      "type": "string",
+      "description": "Job location",
+      "nullable": true
+    },
+    "salary": {
+      "type": "string",
+      "description": "Salary range",
+      "nullable": true
+    },
+    "type": {
+      "type": "string",
+      "description": "Employment type (full-time, part-time, etc.)",
+      "nullable": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Full job description",
+      "nullable": false
+    },
+    "requirements": {
+      "type": "string",
+      "description": "Job requirements and qualifications",
+      "nullable": true
+    },
+    "benefits": {
+      "type": "string",
+      "description": "Benefits and perks",
+      "nullable": true
+    },
+    "postedDate": {
+      "type": "string",
+      "description": "Date posted",
+      "nullable": true
+    },
+    "applicationUrl": {
+      "type": "string",
+      "description": "Application URL",
+      "nullable": true
+    }
+  }
+}

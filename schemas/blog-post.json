@@ -1,0 +1,60 @@
+{
+  "selectors": {
+    "title": "h1, article h1, .post-title, .entry-title",
+    "author": ".author, .by-author, .post-author, [rel='author']",
+    "date": "time, .date, .post-date, .published",
+    "content": "article, .post-content, .entry-content, .article-content",
+    "excerpt": ".excerpt, .summary, meta[name='description']",
+    "categories": ".category, .categories a, .post-categories a",
+    "tags": ".tag, .tags a, .post-tags a",
+    "readTime": ".read-time, .reading-time",
+    "image": "article img:first-of-type, .featured-image img, meta[property='og:image']"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "Blog post title",
+      "nullable": false
+    },
+    "author": {
+      "type": "string",
+      "description": "Author name",
+      "nullable": true
+    },
+    "date": {
+      "type": "string",
+      "description": "Publication date",
+      "nullable": true
+    },
+    "content": {
+      "type": "string",
+      "description": "Full article content",
+      "nullable": false
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Short summary or excerpt",
+      "nullable": true
+    },
+    "categories": {
+      "type": "array",
+      "description": "Post categories",
+      "nullable": true
+    },
+    "tags": {
+      "type": "array",
+      "description": "Post tags",
+      "nullable": true
+    },
+    "readTime": {
+      "type": "string",
+      "description": "Estimated reading time",
+      "nullable": true
+    },
+    "image": {
+      "type": "string",
+      "description": "Featured image URL",
+      "nullable": true
+    }
+  }
+}

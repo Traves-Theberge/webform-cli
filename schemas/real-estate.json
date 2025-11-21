@@ -1,0 +1,78 @@
+{
+  "selectors": {
+    "address": ".address, h1.property-address, [itemprop='address']",
+    "price": ".price, .property-price, [itemprop='price']",
+    "bedrooms": ".beds, .bedrooms, [itemprop='numberOfRooms']",
+    "bathrooms": ".baths, .bathrooms",
+    "sqft": ".sqft, .square-feet, [itemprop='floorSize']",
+    "description": ".description, .property-description, [itemprop='description']",
+    "propertyType": ".property-type, [itemprop='@type']",
+    "yearBuilt": ".year-built, [itemprop='yearBuilt']",
+    "features": ".features, .amenities",
+    "images": ".property-images img, .gallery img",
+    "agent": ".agent-name, [itemprop='agent']",
+    "listingDate": ".listing-date, [itemprop='datePosted']"
+  },
+  "structure": {
+    "address": {
+      "type": "string",
+      "description": "Property address",
+      "nullable": false
+    },
+    "price": {
+      "type": "string",
+      "description": "Listing price",
+      "nullable": false
+    },
+    "bedrooms": {
+      "type": "string",
+      "description": "Number of bedrooms",
+      "nullable": true
+    },
+    "bathrooms": {
+      "type": "string",
+      "description": "Number of bathrooms",
+      "nullable": true
+    },
+    "sqft": {
+      "type": "string",
+      "description": "Square footage",
+      "nullable": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Property description",
+      "nullable": false
+    },
+    "propertyType": {
+      "type": "string",
+      "description": "Type of property (house, condo, etc.)",
+      "nullable": true
+    },
+    "yearBuilt": {
+      "type": "string",
+      "description": "Year property was built",
+      "nullable": true
+    },
+    "features": {
+      "type": "string",
+      "description": "Property features and amenities",
+      "nullable": true
+    },
+    "images": {
+      "type": "array",
+      "description": "Property image URLs",
+      "nullable": true
+    },
+    "agent": {
+      "type": "string",
+      "description": "Listing agent name",
+      "nullable": true
+    },
+    "listingDate": {
+      "type": "string",
+      "description": "Date listed",
+      "nullable": true
+    }
+  }
+}

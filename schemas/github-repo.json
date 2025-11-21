@@ -1,0 +1,66 @@
+{
+  "selectors": {
+    "name": "h1 strong[itemprop='name'] a, h1.public strong a",
+    "description": "[itemprop='about'], .repository-content p.f4",
+    "stars": "#repo-stars-counter-star",
+    "forks": "#repo-network-counter",
+    "watchers": "#repo-watchers-counter",
+    "language": "[itemprop='programmingLanguage']",
+    "license": "a[data-content='License']",
+    "lastUpdate": "relative-time",
+    "topics": ".topic-tag",
+    "readme": "#readme article"
+  },
+  "structure": {
+    "name": {
+      "type": "string",
+      "description": "Repository name",
+      "nullable": false
+    },
+    "description": {
+      "type": "string",
+      "description": "Repository description",
+      "nullable": true
+    },
+    "stars": {
+      "type": "string",
+      "description": "Number of stars",
+      "nullable": true
+    },
+    "forks": {
+      "type": "string",
+      "description": "Number of forks",
+      "nullable": true
+    },
+    "watchers": {
+      "type": "string",
+      "description": "Number of watchers",
+      "nullable": true
+    },
+    "language": {
+      "type": "string",
+      "description": "Primary programming language",
+      "nullable": true
+    },
+    "license": {
+      "type": "string",
+      "description": "License type",
+      "nullable": true
+    },
+    "lastUpdate": {
+      "type": "string",
+      "description": "Last update timestamp",
+      "nullable": true
+    },
+    "topics": {
+      "type": "array",
+      "description": "Repository topics/tags",
+      "nullable": true
+    },
+    "readme": {
+      "type": "string",
+      "description": "README content",
+      "nullable": true
+    }
+  }
+}

@@ -1,19 +1,64 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { extractStructuredData } from './extractor';
+import { getRateLimiterForUrl } from './rateLimiter';
+import { isAllowedByRobots } from './robotsChecker';
 // Import the necessary types from the types module
 import type { ExtractorSchema, StructuredOutput, SchemaType, StructuredSchema } from './types';
 
-export async function fetchHTML(url: string, options?: { retry?: number; verbose?: boolean }): Promise<string> {
+export async function fetchHTML(url: string, options?: { retry?: number; verbose?: boolean; rateLimit?: boolean; checkRobots?: boolean }): Promise<string> {
     const retries = options?.retry || 0;
     const verbose = options?.verbose || false;
-    
+    const useRateLimit = options?.rateLimit !== false; // Default to true
+    const checkRobots = options?.checkRobots !== false; // Default to true
+
     if (verbose) {
         console.log(`Fetching HTML from ${url} with ${retries} retries`);
     }
-    
+
+    // Check robots.txt if enabled
+    if (checkRobots) {
+        const robotsCheck = await isAllowedByRobots(url);
+
+        if (!robotsCheck.allowed) {
+            throw new Error(`Access denied by robots.txt: ${robotsCheck.reason}`);
+        }
+
+        if (verbose && robotsCheck.crawlDelay) {
+            console.log(`robots.txt suggests crawl delay: ${robotsCheck.crawlDelay}ms`);
+        }
+
+        // If robots.txt specifies a crawl delay, apply it
+        if (robotsCheck.crawlDelay && useRateLimit) {
+            const rateLimiter = getRateLimiterForUrl(url, {
+                minDelay: Math.max(2000, robotsCheck.crawlDelay),
+            });
+            await rateLimiter.waitForSlot();
+        } else if (useRateLimit) {
+            // Apply default rate limiting
+            const rateLimiter = getRateLimiterForUrl(url);
+            const stats = rateLimiter.getStats();
+
+            if (verbose && !stats.canMakeRequest) {
+                console.log(`Rate limit: waiting ${Math.ceil(stats.nextAvailableIn / 1000)}s before request`);
+            }
+
+            await rateLimiter.waitForSlot();
+        }
+    } else if (useRateLimit) {
+        // Apply rate limiting if enabled (and robots check is disabled)
+        const rateLimiter = getRateLimiterForUrl(url);
+        const stats = rateLimiter.getStats();
+
+        if (verbose && !stats.canMakeRequest) {
+            console.log(`Rate limit: waiting ${Math.ceil(stats.nextAvailableIn / 1000)}s before request`);
+        }
+
+        await rateLimiter.waitForSlot();
+    }
+
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             if (verbose && attempt > 0) {

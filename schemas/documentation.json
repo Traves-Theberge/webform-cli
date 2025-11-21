@@ -1,0 +1,66 @@
+{
+  "selectors": {
+    "title": "h1, .doc-title, article h1",
+    "section": "h2, .section-title",
+    "content": "article, .doc-content, main",
+    "codeExamples": "pre code, .highlight",
+    "sidebar": ".sidebar, .toc, nav",
+    "nextPage": "a.next-page, [rel='next']",
+    "prevPage": "a.prev-page, [rel='prev']",
+    "version": ".version, .doc-version",
+    "breadcrumbs": ".breadcrumbs, nav.breadcrumb",
+    "lastUpdated": ".last-updated, time"
+  },
+  "structure": {
+    "title": {
+      "type": "string",
+      "description": "Page title",
+      "nullable": false
+    },
+    "section": {
+      "type": "string",
+      "description": "Section headings",
+      "nullable": true
+    },
+    "content": {
+      "type": "string",
+      "description": "Main content",
+      "nullable": false
+    },
+    "codeExamples": {
+      "type": "array",
+      "description": "Code examples",
+      "nullable": true
+    },
+    "sidebar": {
+      "type": "string",
+      "description": "Sidebar navigation",
+      "nullable": true
+    },
+    "nextPage": {
+      "type": "string",
+      "description": "Next page link",
+      "nullable": true
+    },
+    "prevPage": {
+      "type": "string",
+      "description": "Previous page link",
+      "nullable": true
+    },
+    "version": {
+      "type": "string",
+      "description": "Documentation version",
+      "nullable": true
+    },
+    "breadcrumbs": {
+      "type": "string",
+      "description": "Breadcrumb navigation",
+      "nullable": true
+    },
+    "lastUpdated": {
+      "type": "string",
+      "description": "Last updated date",
+      "nullable": true
+    }
+  }
+}
