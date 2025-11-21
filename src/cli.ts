@@ -8,6 +8,7 @@ import * as configManager from './configManager';
 import * as output from './output';
 import { formatStructuredOutput, formatWithGemini, processWithGemini } from './formatter';
 import { validateUrl, validateFilePath } from './validation';
+import * as setup from './setup';
 import 'dotenv/config'; // Load environment variables
 import figlet from 'figlet';
 import chalk from 'chalk';
@@ -613,6 +614,148 @@ const yargsInstance = yargs(hideBin(process.argv))
         console.log(chalk.cyan('  set <key> <value>') + ' - Set a configuration value');
         console.log(chalk.cyan('  view') + '              - View all configuration values');
         console.log(chalk.yellow('\nUse --help with any command for more information.\n'));
+      }
+    }
+  })
+  .command({
+    command: 'setup',
+    describe: chalk.green('Interactive setup for API key and model configuration'),
+    builder: (yargs) => {
+      return yargs
+        .option('api-key', {
+          describe: 'Set the Google AI API key',
+          type: 'string',
+        })
+        .option('model', {
+          describe: 'Set the AI model to use',
+          type: 'string',
+          choices: setup.AVAILABLE_MODELS.map(m => m.value),
+        })
+        .option('test', {
+          describe: 'Test the current API key configuration',
+          type: 'boolean',
+        })
+        .option('show-instructions', {
+          describe: 'Show detailed setup instructions',
+          type: 'boolean',
+        })
+        .example(chalk.yellow('$0 setup --api-key YOUR_KEY'), 'Set API key securely in .env file')
+        .example(chalk.yellow('$0 setup --model gemini-2.0-flash'), 'Select a different AI model')
+        .example(chalk.yellow('$0 setup --test'), 'Test your API key configuration')
+        .example(chalk.yellow('$0 setup --show-instructions'), 'Show detailed setup guide');
+    },
+    handler: async (argv: any) => {
+      try {
+        const apiKey = argv['api-key'];
+        const model = argv.model;
+        const testMode = argv.test;
+        const showInstructions = argv['show-instructions'];
+
+        // Show instructions if requested
+        if (showInstructions) {
+          console.log(chalk.cyan(setup.getSetupInstructions()));
+          process.exit(0);
+        }
+
+        // Test mode
+        if (testMode) {
+          const spinner = createSpinner('Testing API key configuration');
+          spinner.start();
+
+          const currentKey = setup.getCurrentApiKey();
+          if (!currentKey) {
+            spinner.fail(chalk.red('No API key found'));
+            console.log(chalk.yellow('\nRun: webform setup --show-instructions'));
+            process.exit(1);
+          }
+
+          const isValid = await setup.testApiKey(currentKey);
+          if (isValid) {
+            spinner.succeed(chalk.green('API key is valid'));
+            console.log(chalk.cyan(`\nCurrent model: ${setup.getCurrentModel()}`));
+          } else {
+            spinner.fail(chalk.red('API key validation failed'));
+            process.exit(1);
+          }
+          process.exit(0);
+        }
+
+        // Set API key
+        if (apiKey) {
+          const spinner = createSpinner('Setting up API key');
+          spinner.start();
+
+          try {
+            await setup.setupEnvFile(apiKey, model);
+            spinner.succeed(chalk.green('API key configured successfully'));
+
+            console.log(boxen(
+              chalk.green('✓ Setup Complete!') + '\n\n' +
+              'Your API key has been securely stored in .env file\n' +
+              'The .env file has been added to .gitignore\n\n' +
+              chalk.cyan('Security Notes:') + '\n' +
+              '  • Never commit .env files to version control\n' +
+              '  • File permissions set to 600 (owner read/write only)\n' +
+              '  • API key is only stored locally\n\n' +
+              chalk.yellow('Test your setup:') + '\n' +
+              '  webform setup --test',
+              { padding: 1, borderColor: 'green' }
+            ));
+          } catch (error) {
+            spinner.fail(chalk.red('Failed to setup API key'));
+            throw error;
+          }
+          process.exit(0);
+        }
+
+        // Set model
+        if (model) {
+          const spinner = createSpinner(`Setting model to ${model}`);
+          spinner.start();
+
+          try {
+            const currentKey = setup.getCurrentApiKey();
+            if (!currentKey) {
+              spinner.warn(chalk.yellow('No API key found, only setting model'));
+            }
+            await setup.setupEnvFile(currentKey || '', model);
+            spinner.succeed(chalk.green(`Model set to: ${model}`));
+          } catch (error) {
+            spinner.fail(chalk.red('Failed to set model'));
+            throw error;
+          }
+          process.exit(0);
+        }
+
+        // No options provided - show interactive guide
+        console.log(boxen(
+          chalk.cyan('🚀 WebForm CLI Setup') + '\n\n' +
+          'Get started with WebForm CLI in 3 steps:',
+          { padding: 1, borderColor: 'cyan', title: 'Welcome', titleAlignment: 'center' }
+        ));
+
+        console.log(chalk.green('\n1. Get your API key:'));
+        console.log(chalk.dim('   Visit: https://makersuite.google.com/app/apikey'));
+
+        console.log(chalk.green('\n2. Configure your API key:'));
+        console.log(chalk.yellow('   webform setup --api-key YOUR_KEY_HERE'));
+
+        console.log(chalk.green('\n3. (Optional) Choose a model:'));
+        console.log(chalk.dim('   Available models:'));
+        setup.AVAILABLE_MODELS.forEach(m => {
+          console.log(chalk.cyan(`     • ${m.name}`));
+        });
+        console.log(chalk.yellow('\n   webform setup --model gemini-2.0-flash'));
+
+        console.log(chalk.green('\n4. Test your setup:'));
+        console.log(chalk.yellow('   webform setup --test'));
+
+        console.log(chalk.dim('\nFor detailed instructions, run:'));
+        console.log(chalk.yellow('  webform setup --show-instructions\n'));
+
+      } catch (error) {
+        console.error(chalk.red('\n✖ Setup failed:'), error instanceof Error ? error.message : String(error));
+        process.exit(1);
       }
     }
   })
