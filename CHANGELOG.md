@@ -8,35 +8,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **CRITICAL:** Implemented missing `scrape` command handler with full functionality
-  - Support for schema loading and selection
-  - HTML fetching with retry mechanism
-  - Data extraction with structured schema support
-  - Optional AI processing with Gemini
-  - Output formatting (JSON/text) and file saving
-  - Verbose mode for debugging
-  - Progress indicators with spinners
 
-- **CRITICAL:** Implemented missing `test` command handler
-  - Raw data extraction without AI processing
-  - Useful for testing CSS selectors and debugging schemas
-  - Visual extraction summary showing field success rate
-  - Helpful tips for troubleshooting
+#### 🎉 Core Functionality (CRITICAL - Application Now Works!)
+- **Implemented missing `scrape` command handler** - The main scraping functionality now works!
+  - Schema loading and selection (simple and structured formats)
+  - HTML fetching with exponential backoff retry mechanism
+  - Data extraction with CSS selectors
+  - Optional AI processing with Gemini LLM
+  - Output formatting (JSON/text) with file saving
+  - Verbose mode for detailed debugging
+  - Progress indicators with colored spinners
+  - Comprehensive error handling
 
-- Added comprehensive error handling for all command operations
-- Added detailed progress feedback with colored output
-- Added extraction statistics (field count, non-empty fields)
+- **Implemented missing `test` command handler** - Debug tool for testing schemas
+  - Raw data extraction without AI processing overhead
+  - Visual extraction summary showing field success rates
+  - Selector debugging capabilities
+  - Helpful troubleshooting tips
+  - Field-by-field success reporting
+
+#### 🔒 Security & Validation
+- **Comprehensive input validation system** (src/validation.ts)
+  - URL validation with protocol checking and private IP warnings
+  - CSS selector validation to prevent injection attacks
+  - File path validation to prevent path traversal
+  - API key validation with placeholder detection
+  - Schema selector validation integrated into loading
+
+- **Secure API key storage**
+  - Prioritize environment variables over config files
+  - Deprecation warnings for config file storage
+  - Automatic .env file creation with secure permissions (0o600)
+  - Automatic .gitignore configuration
+  - 3-second warning delay when storing keys in config
+
+#### 🚀 Setup & User Experience
+- **New `webform setup` command** - Interactive configuration wizard
+  - Step-by-step setup guide for first-time users
+  - Secure API key configuration via .env files
+  - Model selection from available Gemini models:
+    - gemini-2.0-flash (Fast, recommended)
+    - gemini-1.5-pro (Most capable)
+    - gemini-1.5-flash (Balanced)
+  - API key testing functionality
+  - Detailed setup instructions on demand
+  - Security best practices guidance
+
+#### 📝 TypeScript & Code Quality
+- Added proper TypeScript interfaces for all CLI commands:
+  - ScrapeCommandArguments
+  - TestCommandArguments
+  - SchemaViewArguments
+  - SchemaValidateArguments
+  - ConfigSetArguments
+- Improved type documentation throughout codebase
+- Better runtime type checking
 
 ### Fixed
-- Fixed non-functional `scrape` command (was empty placeholder)
-- Fixed non-functional `test` command (was empty placeholder)
+- Fixed non-functional `scrape` command (was empty placeholder - **CRITICAL FIX**)
+- Fixed non-functional `test` command (was empty placeholder - **CRITICAL FIX**)
+- Fixed TypeScript compilation errors and type safety issues
 - Improved error messages with stack traces in verbose mode
 - Fixed schema loading to handle both simple and structured formats
+- Fixed ESM/CommonJS compatibility by building successfully
 
 ### Changed
-- Enhanced CLI output with better visual feedback
+- **BREAKING:** API key storage now strongly recommends environment variables
+  - Config file storage is deprecated (but still works with warnings)
+  - Users guided toward .env files or environment variables
+- Enhanced CLI output with better visual feedback and colors
 - Improved error recovery with graceful degradation when AI fails
 - Updated test mode to provide extraction quality feedback
+- Formatter now validates API keys before use
+
+### Security
+- API keys no longer recommended for config file storage
+- Added file permission checks (0o600 for .env files)
+- Automatic .gitignore management to prevent credential leaks
+- Input sanitization for URLs, file paths, and CSS selectors
+- Warnings for localhost/private IP scraping attempts
 
 ## [1.0.0] - 2025-01-XX
 
