@@ -7,29 +7,49 @@ import * as schemaLoader from './schemaLoader';
 import * as configManager from './configManager';
 import * as output from './output';
 import { formatStructuredOutput, formatWithGemini, processWithGemini } from './formatter';
+import { validateUrl, validateFilePath } from './validation';
 import 'dotenv/config'; // Load environment variables
 import figlet from 'figlet';
 import chalk from 'chalk';
 import ora from 'ora';
 import boxen from 'boxen';
 
-// Define proper types for argv
-interface CommandArguments {
-  [x: string]: unknown;
-  _: string[];
-  $0: string;
-  url?: string;
+// Define types for command arguments (for documentation and validation)
+// Note: yargs handlers use 'any' for pragmatic reasons, but we enforce types at runtime
+interface ScrapeCommandArguments {
+  url: string;
   schema?: string;
   output?: "json" | "text";
   save?: string;
   llmOutput?: boolean;
-  schema_name?: string;
-  key?: string;
-  value?: unknown;
   structured?: boolean;
   includeMetadata?: boolean;
-  verbose?: boolean;
   retry?: number;
+  verbose?: boolean;
+}
+
+interface TestCommandArguments {
+  url: string;
+  schema: string;
+  output?: "json" | "text";
+  save?: string;
+  verbose?: boolean;
+}
+
+interface SchemaViewArguments {
+  schema_name: string;
+  verbose?: boolean;
+}
+
+interface SchemaValidateArguments {
+  schema_name: string;
+  verbose?: boolean;
+}
+
+interface ConfigSetArguments {
+  key: string;
+  value: string;
+  verbose?: boolean;
 }
 
 // Process arguments to detect help mode
@@ -230,17 +250,35 @@ const yargsInstance = yargs(hideBin(process.argv))
         .example(chalk.yellow('$0 scrape https://example.com --schema product --save output.json'), 'Extract product data and save to a file')
         .example(chalk.yellow('$0 scrape https://example.com --structured --retry 3'), 'Extract with structured validation and retry on failure');
     }, 
-    handler: async (argv: any) => {
+    handler: async (argv: any) => { // ScrapeCommandArguments
       try {
-        const url = argv.url as string;
-        const schemaName = argv.schema as string || 'default';
-        const outputFormat = argv.output as 'json' | 'text';
-        const savePath = argv.save as string | undefined;
-        const useLLM = argv.llmOutput as boolean;
-        const useStructured = argv.structured as boolean;
-        const includeMetadata = argv.includeMetadata as boolean;
-        const retryCount = argv.retry as number;
-        const verbose = argv.verbose as boolean;
+        const url = argv.url;
+        const schemaName = argv.schema || 'default';
+        const outputFormat = argv.output || 'json';
+        const savePath = argv.save;
+        const useLLM = argv.llmOutput || false;
+        const useStructured = argv.structured || false;
+        const includeMetadata = argv.includeMetadata !== false;
+        const retryCount = argv.retry || 0;
+        const verbose = argv.verbose || false;
+
+        // Validate URL
+        try {
+          validateUrl(url);
+        } catch (error) {
+          console.error(chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`));
+          process.exit(1);
+        }
+
+        // Validate save path if provided
+        if (savePath) {
+          try {
+            validateFilePath(savePath);
+          } catch (error) {
+            console.error(chalk.red(`\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`));
+            process.exit(1);
+          }
+        }
 
         if (verbose) {
           console.log(chalk.dim(`\nStarting scrape with options:`));
@@ -402,30 +440,29 @@ const yargsInstance = yargs(hideBin(process.argv))
               demandOption: true
             });
           },
-          handler: async (argv: any) => {
+          handler: async (argv: any) => { // SchemaViewArguments
             try {
-              if (argv.schema_name) {
-                const spinner = createSpinner(`Loading schema: ${chalk.yellow(argv.schema_name as string)}`);
-                spinner.start();
+              const schemaName = argv.schema_name;
+              const spinner = createSpinner(`Loading schema: ${chalk.yellow(schemaName)}`);
+              spinner.start();
+
+              const schemaContent = await schemaLoader.viewSchema(schemaName);
+              spinner.succeed(chalk.green(`Schema: ${schemaName}`));
                 
-                const schemaContent = await schemaLoader.viewSchema(argv.schema_name as string);
-                spinner.succeed(chalk.green(`Schema: ${argv.schema_name}`));
-                
-                // Pretty print the JSON schema
-                try {
-                  const parsedSchema = JSON.parse(schemaContent);
-                  console.log(boxen(
-                    chalk.cyan(JSON.stringify(parsedSchema, null, 2)),
-                    { 
-                      padding: 1, 
-                      borderColor: 'yellow',
-                      title: `Schema: ${argv.schema_name}`,
-                      titleAlignment: 'center'
-                    }
-                  ));
-                } catch {
-                  console.log(chalk.yellow(schemaContent));
-                }
+              // Pretty print the JSON schema
+              try {
+                const parsedSchema = JSON.parse(schemaContent);
+                console.log(boxen(
+                  chalk.cyan(JSON.stringify(parsedSchema, null, 2)),
+                  {
+                    padding: 1,
+                    borderColor: 'yellow',
+                    title: `Schema: ${schemaName}`,
+                    titleAlignment: 'center'
+                  }
+                ));
+              } catch {
+                console.log(chalk.yellow(schemaContent));
               }
             } catch (error) {
               console.error(chalk.red('Error viewing schema:'), error);
@@ -443,23 +480,22 @@ const yargsInstance = yargs(hideBin(process.argv))
               demandOption: true
             });
           },
-          handler: async (argv: any) => {
+          handler: async (argv: any) => { // SchemaValidateArguments
             try {
-              if (argv.schema_name) {
-                const spinner = createSpinner(`Validating schema: ${chalk.yellow(argv.schema_name as string)}`);
-                spinner.start();
-                
-                const validationResult = await schemaLoader.validateSchema(argv.schema_name as string);
-                
-                if (validationResult.valid) {
-                  spinner.succeed(chalk.green(`Schema "${argv.schema_name}" is valid`));
-                } else {
-                  spinner.fail(chalk.red(`Schema "${argv.schema_name}" has validation errors`));
-                  console.log(boxen(
-                    chalk.red(JSON.stringify(validationResult.errors, null, 2)),
-                    { padding: 1, borderColor: 'red', title: 'Validation Errors' }
-                  ));
-                }
+              const schemaName = argv.schema_name;
+              const spinner = createSpinner(`Validating schema: ${chalk.yellow(schemaName)}`);
+              spinner.start();
+
+              const validationResult = await schemaLoader.validateSchema(schemaName);
+
+              if (validationResult.valid) {
+                spinner.succeed(chalk.green(`Schema "${schemaName}" is valid`));
+              } else {
+                spinner.fail(chalk.red(`Schema "${schemaName}" has validation errors`));
+                console.log(boxen(
+                  chalk.red(JSON.stringify(validationResult.errors, null, 2)),
+                  { padding: 1, borderColor: 'red', title: 'Validation Errors' }
+                ));
               }
             } catch (error) {
               console.error(chalk.red('Error validating schema:'), error);
@@ -505,15 +541,15 @@ const yargsInstance = yargs(hideBin(process.argv))
                 demandOption: true
               });
           },
-          handler: async (argv: any) => {
+          handler: async (argv: any) => { // ConfigSetArguments
             try {
-              if (argv.key && argv.value) {
-                const spinner = createSpinner(`Setting configuration: ${chalk.cyan(argv.key as string)}`);
-                spinner.start();
-                
-                await configManager.setConfig(argv.key as string, argv.value as string);
-                spinner.succeed(chalk.green(`Configuration set: ${argv.key} = ${argv.value}`));
-              }
+              const key = argv.key;
+              const value = argv.value;
+              const spinner = createSpinner(`Setting configuration: ${chalk.cyan(key)}`);
+              spinner.start();
+
+              await configManager.setConfig(key, value);
+              spinner.succeed(chalk.green(`Configuration set: ${key} = ${value}`));
             } catch (error) {
               console.error(chalk.red('Error setting configuration:'), error);
               process.exit(1);
@@ -591,13 +627,31 @@ const yargsInstance = yargs(hideBin(process.argv))
         .example(chalk.yellow('$0 test https://news.ycombinator.com'), 'Test extraction from Hacker News')
         .example(chalk.yellow('$0 test https://example.com --schema product'), 'Test product extraction');
     },
-    handler: async (argv: any) => {
+    handler: async (argv: any) => { // TestCommandArguments
       try {
-        const url = argv.url as string;
-        const schemaName = argv.schema as string;
-        const outputFormat = argv.output as 'json' | 'text';
-        const savePath = argv.save as string | undefined;
-        const verbose = argv.verbose as boolean;
+        const url = argv.url;
+        const schemaName = argv.schema;
+        const outputFormat = argv.output || 'json';
+        const savePath = argv.save;
+        const verbose = argv.verbose || false;
+
+        // Validate URL
+        try {
+          validateUrl(url);
+        } catch (error) {
+          console.error(chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`));
+          process.exit(1);
+        }
+
+        // Validate save path if provided
+        if (savePath) {
+          try {
+            validateFilePath(savePath);
+          } catch (error) {
+            console.error(chalk.red(`\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`));
+            process.exit(1);
+          }
+        }
 
         console.log(boxen(
           chalk.yellow('⚠️  TEST MODE') + '\n\n' +

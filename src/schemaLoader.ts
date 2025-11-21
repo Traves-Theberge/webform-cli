@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import * as fsSync from 'fs';
 import path from 'path';
 import Ajv from 'ajv';
+import { validateSchemaSelectors } from './validation';
 
 // Initialize JSON schema validator
 const ajv = new Ajv({
@@ -86,6 +87,17 @@ export async function loadSchema(schemaName: string): Promise<Record<string, str
     try {
         const schemaFile = await fs.readFile(schemaPath, 'utf-8');
         const parsedSchema = JSON.parse(schemaFile);
+
+        // Validate selectors if present
+        const selectors = parsedSchema.selectors || parsedSchema;
+        if (selectors && typeof selectors === 'object') {
+            try {
+                validateSchemaSelectors(selectors);
+            } catch (validationError) {
+                throw new Error(`Schema validation failed: ${validationError instanceof Error ? validationError.message : String(validationError)}`);
+            }
+        }
+
         return parsedSchema;
     } catch (error: unknown) {
         if (error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
