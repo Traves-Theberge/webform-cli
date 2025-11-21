@@ -1,17 +1,17 @@
 // filepath: c:\Users\trave\OneDrive\Desktop\Programs\Repository\Scapeai\webform-cli\src\utils.ts
 
 export function log(message: string): void {
-    console.log(`[LOG] ${new Date().toISOString()}: ${message}`);
+  console.log(`[LOG] ${new Date().toISOString()}: ${message}`);
 }
 
 export function error(message: string): void {
-    console.error(`[ERROR] ${new Date().toISOString()}: ${message}`);
+  console.error(`[ERROR] ${new Date().toISOString()}: ${message}`);
 }
 
 export function verboseLog(message: string, isVerbose: boolean): void {
-    if (isVerbose) {
-        console.log(`[VERBOSE] ${new Date().toISOString()}: ${message}`);
-    }
+  if (isVerbose) {
+    console.log(`[VERBOSE] ${new Date().toISOString()}: ${message}`);
+  }
 }
 
 /**
@@ -21,7 +21,7 @@ export function verboseLog(message: string, isVerbose: boolean): void {
  * @returns The configuration value or default
  */
 export function getEnv(key: string, defaultValue: string = ''): string {
-    return process.env[key] || defaultValue;
+  return process.env[key] || defaultValue;
 }
 
 /**
@@ -30,7 +30,7 @@ export function getEnv(key: string, defaultValue: string = ''): string {
  * @returns The API key or empty string
  */
 export function getGoogleApiKey(configApiKey?: string): string {
-    return getEnv('GOOGLE_AI_API_KEY', configApiKey || '');
+  return getEnv('GOOGLE_AI_API_KEY', configApiKey || '');
 }
 
 /**
@@ -39,5 +39,5 @@ export function getGoogleApiKey(configApiKey?: string): string {
  * @returns The model name to use
  */
 export function getGoogleModel(defaultModel: string = 'gemini-2.0-flash'): string {
-    return getEnv('GOOGLE_AI_MODEL', defaultModel);
+  return getEnv('GOOGLE_AI_MODEL', defaultModel);
 }

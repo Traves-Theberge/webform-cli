@@ -56,9 +56,10 @@ export async function setupEnvFile(apiKey: string, model?: string): Promise<void
   }
 
   // Rebuild .env file content
-  const newEnvContent = Object.entries(envVars)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('\n') + '\n';
+  const newEnvContent =
+    Object.entries(envVars)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n') + '\n';
 
   // Write .env file
   await fs.writeFile(envPath, newEnvContent, { mode: 0o600 }); // Secure permissions

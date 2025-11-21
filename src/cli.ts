@@ -20,7 +20,7 @@ import boxen from 'boxen';
 interface ScrapeCommandArguments {
   url: string;
   schema?: string;
-  output?: "json" | "text";
+  output?: 'json' | 'text';
   save?: string;
   llmOutput?: boolean;
   structured?: boolean;
@@ -32,7 +32,7 @@ interface ScrapeCommandArguments {
 interface TestCommandArguments {
   url: string;
   schema: string;
-  output?: "json" | "text";
+  output?: 'json' | 'text';
   save?: string;
   verbose?: boolean;
 }
@@ -55,13 +55,10 @@ interface ConfigSetArguments {
 
 // Process arguments to detect help mode
 const args = process.argv.slice(2);
-const isBasicHelpMode = 
-  args.includes('--help') || 
-  args.includes('-h') || 
-  args.length === 0 || 
-  args[0] === 'help';
+const isBasicHelpMode =
+  args.includes('--help') || args.includes('-h') || args.length === 0 || args[0] === 'help';
 
-// Only show banner when NOT in basic help mode 
+// Only show banner when NOT in basic help mode
 if (!isBasicHelpMode) {
   // Display ASCII art banner
   console.log(
@@ -71,22 +68,19 @@ if (!isBasicHelpMode) {
         horizontalLayout: 'default',
         verticalLayout: 'default',
         width: 80,
-        whitespaceBreak: true
+        whitespaceBreak: true,
       })
     )
   );
 
   // Welcome message in a box
   console.log(
-    boxen(
-      chalk.green('Web Scraping Made Easy with Schema-Driven Extraction'),
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'round',
-        borderColor: 'cyan'
-      }
-    )
+    boxen(chalk.green('Web Scraping Made Easy with Schema-Driven Extraction'), {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'round',
+      borderColor: 'cyan',
+    })
   );
 }
 
@@ -95,7 +89,7 @@ const createSpinner = (text: string) => {
   return ora({
     text,
     color: 'cyan',
-    spinner: 'dots'
+    spinner: 'dots',
   });
 };
 
@@ -104,7 +98,7 @@ const COMMAND_GROUPS = {
   SCRAPING: 'Scraping Commands:',
   SCHEMA: 'Schema Management:',
   CONFIG: 'Configuration:',
-  UTILITY: 'Utility Commands:'
+  UTILITY: 'Utility Commands:',
 };
 
 // Create a more comprehensive tutorial with examples
@@ -117,6 +111,7 @@ ${chalk.bold('USAGE')}
   ${chalk.yellow('webform')} ${chalk.green('<command>')} ${chalk.cyan('[options]')}
 
 ${chalk.bold('COMMANDS')}
+  ${chalk.green('setup')}                Interactive setup for API key and model configuration
   ${chalk.green('scrape')} <url>         Extract data from a webpage using a schema
   ${chalk.green('schema')}               Manage data extraction schemas
     ${chalk.cyan('list')}                List all available schemas
@@ -136,8 +131,9 @@ ${chalk.bold('GLOBAL OPTIONS')}
 ${chalk.bold('GETTING STARTED TUTORIAL')}
   ${chalk.cyan('1. Set up your API key')}
      WebForm CLI uses Google's Gemini API for advanced data processing.
-     Get your API key from Google AI Studio and set it:
-     ${chalk.yellow('webform config set gemini_api_key YOUR_API_KEY')}
+     Get your API key from Google AI Studio and run the interactive setup:
+     ${chalk.yellow('webform setup')}
+     Or set it directly: ${chalk.yellow('webform setup --api-key YOUR_API_KEY')}
 
   ${chalk.cyan('2. View available schemas')}
      Schemas define how data is extracted from websites:
@@ -197,18 +193,30 @@ const yargsInstance = yargs(hideBin(process.argv))
     alias: 'v',
     describe: 'Show detailed logs during execution',
     type: 'boolean',
-    global: true
+    global: true,
   })
   .command({
     command: 'scrape <url>',
     describe: chalk.green('Extract data from a webpage using a schema'),
-    builder: (yargs) => {
+    builder: yargs => {
       return yargs
-        .group(['url', 'schema', 'output', 'save', 'llm-output', 'structured', 'include-metadata', 'retry'], COMMAND_GROUPS.SCRAPING)
+        .group(
+          [
+            'url',
+            'schema',
+            'output',
+            'save',
+            'llm-output',
+            'structured',
+            'include-metadata',
+            'retry',
+          ],
+          COMMAND_GROUPS.SCRAPING
+        )
         .positional('url', {
           describe: 'The URL to scrape',
           type: 'string',
-          demandOption: true
+          demandOption: true,
         })
         .option('schema', {
           alias: 's',
@@ -247,11 +255,21 @@ const yargsInstance = yargs(hideBin(process.argv))
           type: 'number',
           default: 0,
         })
-        .example(chalk.yellow('$0 scrape https://example.com --schema article'), 'Scrape an article from example.com')
-        .example(chalk.yellow('$0 scrape https://example.com --schema product --save output.json'), 'Extract product data and save to a file')
-        .example(chalk.yellow('$0 scrape https://example.com --structured --retry 3'), 'Extract with structured validation and retry on failure');
-    }, 
-    handler: async (argv: any) => { // ScrapeCommandArguments
+        .example(
+          chalk.yellow('$0 scrape https://example.com --schema article'),
+          'Scrape an article from example.com'
+        )
+        .example(
+          chalk.yellow('$0 scrape https://example.com --schema product --save output.json'),
+          'Extract product data and save to a file'
+        )
+        .example(
+          chalk.yellow('$0 scrape https://example.com --structured --retry 3'),
+          'Extract with structured validation and retry on failure'
+        );
+    },
+    handler: async (argv: any) => {
+      // ScrapeCommandArguments
       try {
         const url = argv.url;
         const schemaName = argv.schema || 'default';
@@ -267,7 +285,9 @@ const yargsInstance = yargs(hideBin(process.argv))
         try {
           validateUrl(url);
         } catch (error) {
-          console.error(chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`));
+          console.error(
+            chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`)
+          );
           process.exit(1);
         }
 
@@ -276,7 +296,11 @@ const yargsInstance = yargs(hideBin(process.argv))
           try {
             validateFilePath(savePath);
           } catch (error) {
-            console.error(chalk.red(`\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`));
+            console.error(
+              chalk.red(
+                `\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`
+              )
+            );
             process.exit(1);
           }
         }
@@ -334,7 +358,9 @@ const yargsInstance = yargs(hideBin(process.argv))
           } else {
             extractedData = scraper.extractData(html, simpleSchema);
           }
-          extractSpinner.succeed(chalk.green(`Data extracted (${Object.keys(extractedData).length} fields)`));
+          extractSpinner.succeed(
+            chalk.green(`Data extracted (${Object.keys(extractedData).length} fields)`)
+          );
 
           if (verbose) {
             console.log(chalk.dim('\nRaw extracted data:'));
@@ -362,7 +388,9 @@ const yargsInstance = yargs(hideBin(process.argv))
             }
           } catch (error) {
             llmSpinner.warn(chalk.yellow('AI processing failed, using raw data'));
-            console.error(chalk.dim(`Error: ${error instanceof Error ? error.message : String(error)}`));
+            console.error(
+              chalk.dim(`Error: ${error instanceof Error ? error.message : String(error)}`)
+            );
             finalOutput = extractedData;
           }
         } else {
@@ -373,37 +401,37 @@ const yargsInstance = yargs(hideBin(process.argv))
         console.log(chalk.green('\n✓ Scraping completed successfully!\n'));
 
         if (useStructured && typeof finalOutput === 'object') {
-          await output.outputStructuredData(
-            finalOutput,
-            outputFormat,
-            savePath,
-            { includeMetadata }
-          );
+          await output.outputStructuredData(finalOutput, outputFormat, savePath, {
+            includeMetadata,
+          });
         } else {
-          const outputData = typeof finalOutput === 'string'
-            ? finalOutput
-            : JSON.stringify(finalOutput, null, 2);
+          const outputData =
+            typeof finalOutput === 'string' ? finalOutput : JSON.stringify(finalOutput, null, 2);
           await output.outputFormattedData(outputData, outputFormat, savePath);
         }
 
         if (savePath) {
           console.log(chalk.green(`\n✓ Output saved to: ${chalk.cyan(savePath)}`));
         }
-
       } catch (error) {
-        console.error(chalk.red('\n✖ Scraping failed:'), error instanceof Error ? error.message : String(error));
+        console.error(
+          chalk.red('\n✖ Scraping failed:'),
+          error instanceof Error ? error.message : String(error)
+        );
         if (argv.verbose) {
           console.error(chalk.dim('\nStack trace:'));
-          console.error(chalk.dim(error instanceof Error ? error.stack : 'No stack trace available'));
+          console.error(
+            chalk.dim(error instanceof Error ? error.stack : 'No stack trace available')
+          );
         }
         process.exit(1);
       }
-    }
+    },
   })
   .command({
     command: 'schema',
     describe: chalk.green('Manage data extraction schemas'),
-    builder: (yargs) => {
+    builder: yargs => {
       return yargs
         .group(['list', 'view', 'validate'], COMMAND_GROUPS.SCHEMA)
         .command({
@@ -413,10 +441,10 @@ const yargsInstance = yargs(hideBin(process.argv))
             try {
               const spinner = createSpinner('Listing available schemas');
               spinner.start();
-              
+
               const schemas = await schemaLoader.listSchemas();
               spinner.succeed(chalk.green('Available schemas:'));
-              
+
               // Display schemas in a formatted list
               if (schemas.length > 0) {
                 schemas.forEach((schema, index) => {
@@ -429,19 +457,20 @@ const yargsInstance = yargs(hideBin(process.argv))
               console.error(chalk.red('Error listing schemas:'), error);
               process.exit(1);
             }
-          }
+          },
         })
         .command({
           command: 'view <schema_name>',
           describe: 'View the definition of a specific schema',
-          builder: (yargs) => {
+          builder: yargs => {
             return yargs.positional('schema_name', {
               describe: 'The name of the schema to view',
               type: 'string',
-              demandOption: true
+              demandOption: true,
             });
           },
-          handler: async (argv: any) => { // SchemaViewArguments
+          handler: async (argv: any) => {
+            // SchemaViewArguments
             try {
               const schemaName = argv.schema_name;
               const spinner = createSpinner(`Loading schema: ${chalk.yellow(schemaName)}`);
@@ -449,19 +478,18 @@ const yargsInstance = yargs(hideBin(process.argv))
 
               const schemaContent = await schemaLoader.viewSchema(schemaName);
               spinner.succeed(chalk.green(`Schema: ${schemaName}`));
-                
+
               // Pretty print the JSON schema
               try {
                 const parsedSchema = JSON.parse(schemaContent);
-                console.log(boxen(
-                  chalk.cyan(JSON.stringify(parsedSchema, null, 2)),
-                  {
+                console.log(
+                  boxen(chalk.cyan(JSON.stringify(parsedSchema, null, 2)), {
                     padding: 1,
                     borderColor: 'yellow',
                     title: `Schema: ${schemaName}`,
-                    titleAlignment: 'center'
-                  }
-                ));
+                    titleAlignment: 'center',
+                  })
+                );
               } catch {
                 console.log(chalk.yellow(schemaContent));
               }
@@ -469,19 +497,20 @@ const yargsInstance = yargs(hideBin(process.argv))
               console.error(chalk.red('Error viewing schema:'), error);
               process.exit(1);
             }
-          }
+          },
         })
         .command({
           command: 'validate <schema_name>',
           describe: 'Validate a schema against the meta-schema definition',
-          builder: (yargs) => {
+          builder: yargs => {
             return yargs.positional('schema_name', {
               describe: 'The name of the schema to validate',
               type: 'string',
-              demandOption: true
+              demandOption: true,
             });
           },
-          handler: async (argv: any) => { // SchemaValidateArguments
+          handler: async (argv: any) => {
+            // SchemaValidateArguments
             try {
               const schemaName = argv.schema_name;
               const spinner = createSpinner(`Validating schema: ${chalk.yellow(schemaName)}`);
@@ -493,23 +522,26 @@ const yargsInstance = yargs(hideBin(process.argv))
                 spinner.succeed(chalk.green(`Schema "${schemaName}" is valid`));
               } else {
                 spinner.fail(chalk.red(`Schema "${schemaName}" has validation errors`));
-                console.log(boxen(
-                  chalk.red(JSON.stringify(validationResult.errors, null, 2)),
-                  { padding: 1, borderColor: 'red', title: 'Validation Errors' }
-                ));
+                console.log(
+                  boxen(chalk.red(JSON.stringify(validationResult.errors, null, 2)), {
+                    padding: 1,
+                    borderColor: 'red',
+                    title: 'Validation Errors',
+                  })
+                );
               }
             } catch (error) {
               console.error(chalk.red('Error validating schema:'), error);
               process.exit(1);
             }
-          }
+          },
         })
         .demandCommand(1, chalk.red('You must specify a subcommand for schema management'))
         .example(chalk.yellow('$0 schema list'), 'List all available schemas')
         .example(chalk.yellow('$0 schema view article'), 'View the article schema definition')
         .example(chalk.yellow('$0 schema validate product'), 'Validate the product schema');
     },
-    handler: (argv) => {
+    handler: argv => {
       // Show help for schema command when no subcommand is provided
       if (argv._.length <= 1) {
         console.log(chalk.yellow('\nSchema Management Commands:'));
@@ -518,51 +550,57 @@ const yargsInstance = yargs(hideBin(process.argv))
         console.log(chalk.cyan('  validate <schema>') + ' - Validate a schema');
         console.log(chalk.yellow('\nUse --help with any command for more information.\n'));
       }
-    }
+    },
   })
   .command({
     command: 'config',
     describe: chalk.green('Manage WebForm CLI configuration'),
-    builder: (yargs) => {
+    builder: yargs => {
       return yargs
         .group(['set', 'view'], COMMAND_GROUPS.CONFIG)
         .command({
           command: 'set <key> <value>',
           describe: 'Set a configuration value',
-          builder: (yargs) => {
+          builder: yargs => {
             return yargs
               .positional('key', {
                 describe: 'Configuration key to set',
                 type: 'string',
-                demandOption: true
+                demandOption: true,
               })
               .positional('value', {
                 describe: 'Value to assign to the key',
                 type: 'string',
-                demandOption: true
+                demandOption: true,
               });
           },
-          handler: async (argv: any) => { // ConfigSetArguments
+          handler: async (argv: any) => {
+            // ConfigSetArguments
             try {
               const key = argv.key;
               const value = argv.value;
 
               // Warn users about storing API keys in config files
               if (key.toLowerCase().includes('api') || key.toLowerCase().includes('key')) {
-                console.log(boxen(
-                  chalk.yellow('⚠️  SECURITY WARNING') + '\n\n' +
-                  'Storing API keys in configuration files is insecure!\n\n' +
-                  'Recommended approach:\n' +
-                  '  1. Create a .env file in your project\n' +
-                  '  2. Add: GOOGLE_AI_API_KEY=your_key_here\n' +
-                  '  3. Add .env to .gitignore\n\n' +
-                  'Or set environment variable:\n' +
-                  '  export GOOGLE_AI_API_KEY=your_key_here',
-                  { padding: 1, borderColor: 'yellow', borderStyle: 'double' }
-                ));
+                console.log(
+                  boxen(
+                    chalk.yellow('⚠️  SECURITY WARNING') +
+                      '\n\n' +
+                      'Storing API keys in configuration files is insecure!\n\n' +
+                      'Recommended approach:\n' +
+                      '  1. Create a .env file in your project\n' +
+                      '  2. Add: GOOGLE_AI_API_KEY=your_key_here\n' +
+                      '  3. Add .env to .gitignore\n\n' +
+                      'Or set environment variable:\n' +
+                      '  export GOOGLE_AI_API_KEY=your_key_here',
+                    { padding: 1, borderColor: 'yellow', borderStyle: 'double' }
+                  )
+                );
 
                 // Give user a chance to abort
-                console.log(chalk.dim('\nPress Ctrl+C to cancel, or wait 3 seconds to continue...'));
+                console.log(
+                  chalk.dim('\nPress Ctrl+C to cancel, or wait 3 seconds to continue...')
+                );
                 await new Promise(resolve => setTimeout(resolve, 3000));
               }
 
@@ -575,7 +613,7 @@ const yargsInstance = yargs(hideBin(process.argv))
               console.error(chalk.red('Error setting configuration:'), error);
               process.exit(1);
             }
-          }
+          },
         })
         .command({
           command: 'view',
@@ -584,30 +622,32 @@ const yargsInstance = yargs(hideBin(process.argv))
             try {
               const spinner = createSpinner('Loading configuration');
               spinner.start();
-              
+
               const config = await configManager.getConfig();
               spinner.succeed(chalk.green('Current configuration:'));
-              
-              console.log(boxen(
-                chalk.cyan(JSON.stringify(config, null, 2)),
-                { 
-                  padding: 1, 
+
+              console.log(
+                boxen(chalk.cyan(JSON.stringify(config, null, 2)), {
+                  padding: 1,
                   borderColor: 'green',
                   title: 'Configuration',
-                  titleAlignment: 'center'
-                }
-              ));
+                  titleAlignment: 'center',
+                })
+              );
             } catch (error) {
               console.error(chalk.red('Error viewing configuration:'), error);
               process.exit(1);
             }
-          }
+          },
         })
         .demandCommand(1, chalk.red('You must specify a subcommand for config management'))
-        .example(chalk.yellow('$0 config set gemini_api_key YOUR_API_KEY'), 'Set your Google AI API key')
+        .example(
+          chalk.yellow('$0 config set gemini_api_key YOUR_API_KEY'),
+          'Set your Google AI API key'
+        )
         .example(chalk.yellow('$0 config view'), 'View all current configuration values');
     },
-    handler: (argv) => {
+    handler: argv => {
       // Show help for config command when no subcommand is provided
       if (argv._.length <= 1) {
         console.log(chalk.yellow('\nConfiguration Commands:'));
@@ -615,12 +655,12 @@ const yargsInstance = yargs(hideBin(process.argv))
         console.log(chalk.cyan('  view') + '              - View all configuration values');
         console.log(chalk.yellow('\nUse --help with any command for more information.\n'));
       }
-    }
+    },
   })
   .command({
     command: 'setup',
     describe: chalk.green('Interactive setup for API key and model configuration'),
-    builder: (yargs) => {
+    builder: yargs => {
       return yargs
         .option('api-key', {
           describe: 'Set the Google AI API key',
@@ -689,18 +729,23 @@ const yargsInstance = yargs(hideBin(process.argv))
             await setup.setupEnvFile(apiKey, model);
             spinner.succeed(chalk.green('API key configured successfully'));
 
-            console.log(boxen(
-              chalk.green('✓ Setup Complete!') + '\n\n' +
-              'Your API key has been securely stored in .env file\n' +
-              'The .env file has been added to .gitignore\n\n' +
-              chalk.cyan('Security Notes:') + '\n' +
-              '  • Never commit .env files to version control\n' +
-              '  • File permissions set to 600 (owner read/write only)\n' +
-              '  • API key is only stored locally\n\n' +
-              chalk.yellow('Test your setup:') + '\n' +
-              '  webform setup --test',
-              { padding: 1, borderColor: 'green' }
-            ));
+            console.log(
+              boxen(
+                chalk.green('✓ Setup Complete!') +
+                  '\n\n' +
+                  'Your API key has been securely stored in .env file\n' +
+                  'The .env file has been added to .gitignore\n\n' +
+                  chalk.cyan('Security Notes:') +
+                  '\n' +
+                  '  • Never commit .env files to version control\n' +
+                  '  • File permissions set to 600 (owner read/write only)\n' +
+                  '  • API key is only stored locally\n\n' +
+                  chalk.yellow('Test your setup:') +
+                  '\n' +
+                  '  webform setup --test',
+                { padding: 1, borderColor: 'green' }
+              )
+            );
           } catch (error) {
             spinner.fail(chalk.red('Failed to setup API key'));
             throw error;
@@ -728,11 +773,14 @@ const yargsInstance = yargs(hideBin(process.argv))
         }
 
         // No options provided - show interactive guide
-        console.log(boxen(
-          chalk.cyan('🚀 WebForm CLI Setup') + '\n\n' +
-          'Get started with WebForm CLI in 3 steps:',
-          { padding: 1, borderColor: 'cyan', title: 'Welcome', titleAlignment: 'center' }
-        ));
+        console.log(
+          boxen(
+            chalk.cyan('🚀 WebForm CLI Setup') +
+              '\n\n' +
+              'Get started with WebForm CLI in 3 steps:',
+            { padding: 1, borderColor: 'cyan', title: 'Welcome', titleAlignment: 'center' }
+          )
+        );
 
         console.log(chalk.green('\n1. Get your API key:'));
         console.log(chalk.dim('   Visit: https://makersuite.google.com/app/apikey'));
@@ -752,29 +800,31 @@ const yargsInstance = yargs(hideBin(process.argv))
 
         console.log(chalk.dim('\nFor detailed instructions, run:'));
         console.log(chalk.yellow('  webform setup --show-instructions\n'));
-
       } catch (error) {
-        console.error(chalk.red('\n✖ Setup failed:'), error instanceof Error ? error.message : String(error));
+        console.error(
+          chalk.red('\n✖ Setup failed:'),
+          error instanceof Error ? error.message : String(error)
+        );
         process.exit(1);
       }
-    }
+    },
   })
   .command({
     command: 'test <url>',
     describe: chalk.green('Test extraction without using AI processing'),
-    builder: (yargs) => {
+    builder: yargs => {
       return yargs
         .group(['url', 'schema', 'output', 'save'], COMMAND_GROUPS.UTILITY)
         .positional('url', {
           describe: 'The URL to scrape',
           type: 'string',
-          demandOption: true
+          demandOption: true,
         })
         .option('schema', {
           alias: 's',
           describe: 'Schema to use for extraction (default: article)',
           type: 'string',
-          default: 'article'
+          default: 'article',
         })
         .option('output', {
           alias: 'o',
@@ -787,10 +837,17 @@ const yargsInstance = yargs(hideBin(process.argv))
           describe: 'Save output to this file',
           type: 'string',
         })
-        .example(chalk.yellow('$0 test https://news.ycombinator.com'), 'Test extraction from Hacker News')
-        .example(chalk.yellow('$0 test https://example.com --schema product'), 'Test product extraction');
+        .example(
+          chalk.yellow('$0 test https://news.ycombinator.com'),
+          'Test extraction from Hacker News'
+        )
+        .example(
+          chalk.yellow('$0 test https://example.com --schema product'),
+          'Test product extraction'
+        );
     },
-    handler: async (argv: any) => { // TestCommandArguments
+    handler: async (argv: any) => {
+      // TestCommandArguments
       try {
         const url = argv.url;
         const schemaName = argv.schema;
@@ -802,7 +859,9 @@ const yargsInstance = yargs(hideBin(process.argv))
         try {
           validateUrl(url);
         } catch (error) {
-          console.error(chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`));
+          console.error(
+            chalk.red(`\n✖ Invalid URL: ${error instanceof Error ? error.message : String(error)}`)
+          );
           process.exit(1);
         }
 
@@ -811,17 +870,24 @@ const yargsInstance = yargs(hideBin(process.argv))
           try {
             validateFilePath(savePath);
           } catch (error) {
-            console.error(chalk.red(`\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`));
+            console.error(
+              chalk.red(
+                `\n✖ Invalid file path: ${error instanceof Error ? error.message : String(error)}`
+              )
+            );
             process.exit(1);
           }
         }
 
-        console.log(boxen(
-          chalk.yellow('⚠️  TEST MODE') + '\n\n' +
-          'This mode extracts raw data without AI processing.\n' +
-          'Useful for testing selectors and debugging schemas.',
-          { padding: 1, borderColor: 'yellow', title: 'Test Mode', titleAlignment: 'center' }
-        ));
+        console.log(
+          boxen(
+            chalk.yellow('⚠️  TEST MODE') +
+              '\n\n' +
+              'This mode extracts raw data without AI processing.\n' +
+              'Useful for testing selectors and debugging schemas.',
+            { padding: 1, borderColor: 'yellow', title: 'Test Mode', titleAlignment: 'center' }
+          )
+        );
 
         if (verbose) {
           console.log(chalk.dim(`\nTest extraction with options:`));
@@ -869,8 +935,8 @@ const yargsInstance = yargs(hideBin(process.argv))
         try {
           extractedData = scraper.extractData(html, schema);
           const fieldCount = Object.keys(extractedData).length;
-          const nonEmptyFields = Object.values(extractedData).filter(v =>
-            v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true)
+          const nonEmptyFields = Object.values(extractedData).filter(
+            v => v !== null && v !== '' && (Array.isArray(v) ? v.length > 0 : true)
           ).length;
 
           extractSpinner.succeed(
@@ -883,20 +949,23 @@ const yargsInstance = yargs(hideBin(process.argv))
 
         // Step 4: Display extraction summary
         console.log(chalk.green('\n✓ Test extraction completed!\n'));
-        console.log(boxen(
-          chalk.cyan('Extraction Summary:') + '\n\n' +
-          Object.entries(extractedData)
-            .map(([key, value]) => {
-              const valuePreview = Array.isArray(value)
-                ? `[${value.length} items]`
-                : value === null || value === ''
-                  ? chalk.red('(empty)')
-                  : String(value).substring(0, 50) + (String(value).length > 50 ? '...' : '');
-              return `  ${chalk.yellow(key)}: ${valuePreview}`;
-            })
-            .join('\n'),
-          { padding: 1, borderColor: 'cyan', title: 'Extracted Fields', titleAlignment: 'center' }
-        ));
+        console.log(
+          boxen(
+            chalk.cyan('Extraction Summary:') +
+              '\n\n' +
+              Object.entries(extractedData)
+                .map(([key, value]) => {
+                  const valuePreview = Array.isArray(value)
+                    ? `[${value.length} items]`
+                    : value === null || value === ''
+                      ? chalk.red('(empty)')
+                      : String(value).substring(0, 50) + (String(value).length > 50 ? '...' : '');
+                  return `  ${chalk.yellow(key)}: ${valuePreview}`;
+                })
+                .join('\n'),
+            { padding: 1, borderColor: 'cyan', title: 'Extracted Fields', titleAlignment: 'center' }
+          )
+        );
 
         // Step 5: Output results
         console.log(chalk.cyan('\n📋 Full extracted data:\n'));
@@ -914,45 +983,61 @@ const yargsInstance = yargs(hideBin(process.argv))
         console.log(chalk.dim('  • Empty fields may indicate incorrect selectors'));
         console.log(chalk.dim('  • Update schema files in the schemas/ directory'));
         console.log(chalk.dim('  • Run "webform scrape" with same options to use AI processing\n'));
-
       } catch (error) {
-        console.error(chalk.red('\n✖ Test extraction failed:'), error instanceof Error ? error.message : String(error));
+        console.error(
+          chalk.red('\n✖ Test extraction failed:'),
+          error instanceof Error ? error.message : String(error)
+        );
         if (argv.verbose) {
           console.error(chalk.dim('\nStack trace:'));
-          console.error(chalk.dim(error instanceof Error ? error.stack : 'No stack trace available'));
+          console.error(
+            chalk.dim(error instanceof Error ? error.stack : 'No stack trace available')
+          );
         }
         process.exit(1);
       }
-    }
+    },
   })
   .command({
     command: 'tutorial',
     aliases: ['turorial', 'tutor', 'guide', 'learn'],
     describe: chalk.green('Show tutorial and usage examples'),
-    builder: (yargs) => yargs,
+    builder: yargs => yargs,
     handler: () => {
       // Display the custom tutorial
       console.log(customTutorial());
-      
+
       // Provide additional interactive guidance
-      console.log(boxen(
-        chalk.green('🚀 Need more help? Try these resources:') + '\n\n' +
-        chalk.cyan('• Documentation: ') + 'https://github.com/Traves-Theberge/webform-cli\n' +
-        chalk.cyan('• Command help: ') + 'Use --help with any command\n' +
-        chalk.cyan('• Example schemas: ') + 'Check the schemas/ directory',
-        { padding: 1, borderColor: 'blue', title: 'Additional Resources', titleAlignment: 'center' }
-      ));
-    }
+      console.log(
+        boxen(
+          chalk.green('🚀 Need more help? Try these resources:') +
+            '\n\n' +
+            chalk.cyan('• Documentation: ') +
+            'https://github.com/Traves-Theberge/webform-cli\n' +
+            chalk.cyan('• Command help: ') +
+            'Use --help with any command\n' +
+            chalk.cyan('• Example schemas: ') +
+            'Check the schemas/ directory',
+          {
+            padding: 1,
+            borderColor: 'blue',
+            title: 'Additional Resources',
+            titleAlignment: 'center',
+          }
+        )
+      );
+    },
   })
-  .demandCommand(1, chalk.red('\nYou must specify a command to run. Use --help for more information.'))
+  .demandCommand(
+    1,
+    chalk.red('\nYou must specify a command to run. Use --help for more information.')
+  )
   .strict()
   .help()
   .alias('h', 'help')
   .version()
   .alias('v', 'version')
-  .epilogue(
-    chalk.cyan(`For documentation visit: https://github.com/Traves-Theberge/webform-cli`)
-  )
+  .epilogue(chalk.cyan(`For documentation visit: https://github.com/Traves-Theberge/webform-cli`))
   .fail((msg, err) => {
     // Display a more friendly error message
     console.error(chalk.red(`\n✖ ${msg || err.message}`));

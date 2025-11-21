@@ -161,7 +161,10 @@ export const defaultRateLimiter = new RateLimiter('default', {
 /**
  * Get a rate limiter for a specific URL
  */
-export function getRateLimiterForUrl(url: string, config?: Partial<RateLimiterConfig>): RateLimiter {
+export function getRateLimiterForUrl(
+  url: string,
+  config?: Partial<RateLimiterConfig>
+): RateLimiter {
   try {
     const urlObj = new URL(url);
     const domain = urlObj.hostname;

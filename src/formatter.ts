@@ -7,110 +7,113 @@ import 'dotenv/config'; // Load environment variables
 
 // Create a custom Google AI provider instance
 const createAIProvider = async () => {
-    // SECURITY: Prioritize environment variables over config file
-    // Config file storage is deprecated for security reasons
-    const envApiKey = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
+  // SECURITY: Prioritize environment variables over config file
+  // Config file storage is deprecated for security reasons
+  const envApiKey = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
 
-    let apiKey: string | undefined;
+  let apiKey: string | undefined;
 
-    if (envApiKey) {
-        apiKey = envApiKey;
-    } else {
-        // Fallback to config file (deprecated)
-        const configApiKey = await getConfig('gemini_api_key');
-        if (typeof configApiKey === 'string') {
-            console.warn('⚠️  WARNING: Storing API keys in config files is deprecated and insecure.');
-            console.warn('   Please set GOOGLE_AI_API_KEY environment variable instead.');
-            console.warn('   Example: export GOOGLE_AI_API_KEY=your_key_here');
-            apiKey = configApiKey;
-        }
+  if (envApiKey) {
+    apiKey = envApiKey;
+  } else {
+    // Fallback to config file (deprecated)
+    const configApiKey = await getConfig('gemini_api_key');
+    if (typeof configApiKey === 'string') {
+      console.warn('⚠️  WARNING: Storing API keys in config files is deprecated and insecure.');
+      console.warn('   Please set GOOGLE_AI_API_KEY environment variable instead.');
+      console.warn('   Example: export GOOGLE_AI_API_KEY=your_key_here');
+      apiKey = configApiKey;
     }
+  }
 
-    if (!apiKey) {
-        throw new Error(
-            'Google AI API key not found.\n' +
-            'Please set the GOOGLE_AI_API_KEY environment variable:\n' +
-            '  export GOOGLE_AI_API_KEY=your_key_here\n' +
-            'Or create a .env file with: GOOGLE_AI_API_KEY=your_key_here'
-        );
-    }
+  if (!apiKey) {
+    throw new Error(
+      'Google AI API key not found.\n' +
+        'Please set the GOOGLE_AI_API_KEY environment variable:\n' +
+        '  export GOOGLE_AI_API_KEY=your_key_here\n' +
+        'Or create a .env file with: GOOGLE_AI_API_KEY=your_key_here'
+    );
+  }
 
-    // Validate API key
-    try {
-        validateApiKey(apiKey);
-    } catch (error) {
-        throw new Error(`Invalid API key: ${error instanceof Error ? error.message : String(error)}`);
-    }
+  // Validate API key
+  try {
+    validateApiKey(apiKey);
+  } catch (error) {
+    throw new Error(`Invalid API key: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
-    return createGoogleGenerativeAI({
-        apiKey: apiKey,
-        // Additional custom settings can be added here
-    });
+  return createGoogleGenerativeAI({
+    apiKey: apiKey,
+    // Additional custom settings can be added here
+  });
 };
 
-export async function formatWithGemini(extractedData: Record<string, any>, schema: Record<string, string> | null): Promise<string> {
-    try {
-        const googleAI = await createAIProvider();
-        const modelName = getGoogleModel();
-        const model = googleAI(modelName);
-        
-        // Check if schema is undefined or null and handle it properly
-        const schemaStr = schema ? JSON.stringify(schema) : "No schema provided";
-        const dataStr = JSON.stringify(extractedData);
-        
-        const prompt = `Format the following data according to the schema: ${schemaStr}. Data: ${dataStr}`;
-        
-        const result = await generateText({
-            model: model,
-            prompt: prompt
-        });
-        
-        return result.text;
-    } catch (error) {
-        console.error('Error communicating with Google AI API for formatting:', error);
-        throw new Error('Failed to format data with Google AI API.');
-    }
+export async function formatWithGemini(
+  extractedData: Record<string, any>,
+  schema: Record<string, string> | null
+): Promise<string> {
+  try {
+    const googleAI = await createAIProvider();
+    const modelName = getGoogleModel();
+    const model = googleAI(modelName);
+
+    // Check if schema is undefined or null and handle it properly
+    const schemaStr = schema ? JSON.stringify(schema) : 'No schema provided';
+    const dataStr = JSON.stringify(extractedData);
+
+    const prompt = `Format the following data according to the schema: ${schemaStr}. Data: ${dataStr}`;
+
+    const result = await generateText({
+      model: model,
+      prompt: prompt,
+    });
+
+    return result.text;
+  } catch (error) {
+    console.error('Error communicating with Google AI API for formatting:', error);
+    throw new Error('Failed to format data with Google AI API.');
+  }
 }
 
 export async function processWithGemini(extractedData: Record<string, any>): Promise<string> {
-    try {
-        const googleAI = await createAIProvider();
-        const modelName = getGoogleModel();
-        const model = googleAI(modelName);
-        
-        // Handle case where extractedData may be complex
-        const dataStr = JSON.stringify(extractedData, null, 2);
-        
-        const prompt = `Process and analyze the following data extracted from a web page. Provide a coherent summary and highlight key information:
+  try {
+    const googleAI = await createAIProvider();
+    const modelName = getGoogleModel();
+    const model = googleAI(modelName);
+
+    // Handle case where extractedData may be complex
+    const dataStr = JSON.stringify(extractedData, null, 2);
+
+    const prompt = `Process and analyze the following data extracted from a web page. Provide a coherent summary and highlight key information:
 
 ${dataStr}`;
-        
-        const result = await generateText({
-            model: model,
-            prompt: prompt
-        });
-        
-        return result.text;
-    } catch (error) {
-        console.error('Error communicating with Google AI API for processing:', error);
-        throw new Error('Failed to process data with Google AI API.');
-    }
+
+    const result = await generateText({
+      model: model,
+      prompt: prompt,
+    });
+
+    return result.text;
+  } catch (error) {
+    console.error('Error communicating with Google AI API for processing:', error);
+    throw new Error('Failed to process data with Google AI API.');
+  }
 }
 
 /**
  * Format extracted data as structured output according to schema
  */
 export async function formatStructuredOutput(
-    extractedData: Record<string, any>,
-    schema: Record<string, StructuredSchema>
+  extractedData: Record<string, any>,
+  schema: Record<string, StructuredSchema>
 ): Promise<StructuredOutput> {
-    try {
-        const googleAI = await createAIProvider();
-        const modelName = getGoogleModel();
-        const model = googleAI(modelName);
-        
-        // Create a detailed prompt explaining the structured output format
-        const prompt = `
+  try {
+    const googleAI = await createAIProvider();
+    const modelName = getGoogleModel();
+    const model = googleAI(modelName);
+
+    // Create a detailed prompt explaining the structured output format
+    const prompt = `
 I need to convert this extracted web data into a structured format that strictly conforms to the provided schema.
 
 EXTRACTED DATA:
@@ -129,85 +132,85 @@ Requirements:
 
 Return ONLY the formatted JSON response without explanations.`;
 
-        const result = await generateText({
-            model: model,
-            prompt: prompt
-        });
-        
-        try {
-            // Clean up any potential markdown code blocks or extra text
-            let cleanedText = result.text.trim();
-            if (cleanedText.startsWith('```json')) {
-                cleanedText = cleanedText.substring(7);
-            } else if (cleanedText.startsWith('```')) {
-                cleanedText = cleanedText.substring(3);
-            }
-            
-            if (cleanedText.endsWith('```')) {
-                cleanedText = cleanedText.substring(0, cleanedText.length - 3);
-            }
-            
-            cleanedText = cleanedText.trim();
-            
-            const formattedData = JSON.parse(cleanedText);
-            return addMetadata(formattedData);
-        } catch (parseError) {
-            console.error('Error parsing LLM response as JSON:', parseError);
-            // If JSON parsing fails, return the extracted data with minimal validation
-            return addMetadata(validateBasicTypes(extractedData, schema));
-        }
-    } catch (error) {
-        console.error('Error generating structured output:', error);
-        // Fallback to basic validation if AI processing fails
-        return addMetadata(validateBasicTypes(extractedData, schema));
+    const result = await generateText({
+      model: model,
+      prompt: prompt,
+    });
+
+    try {
+      // Clean up any potential markdown code blocks or extra text
+      let cleanedText = result.text.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.substring(7);
+      } else if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.substring(3);
+      }
+
+      if (cleanedText.endsWith('```')) {
+        cleanedText = cleanedText.substring(0, cleanedText.length - 3);
+      }
+
+      cleanedText = cleanedText.trim();
+
+      const formattedData = JSON.parse(cleanedText);
+      return addMetadata(formattedData);
+    } catch (parseError) {
+      console.error('Error parsing LLM response as JSON:', parseError);
+      // If JSON parsing fails, return the extracted data with minimal validation
+      return addMetadata(validateBasicTypes(extractedData, schema));
     }
+  } catch (error) {
+    console.error('Error generating structured output:', error);
+    // Fallback to basic validation if AI processing fails
+    return addMetadata(validateBasicTypes(extractedData, schema));
+  }
 }
 
 /**
  * Add metadata to structured output
  */
 function addMetadata(data: Record<string, any>): StructuredOutput {
-    return {
-        ...data,
-        _metadata: {
-            schemaVersion: '1.0',
-            extractedAt: new Date().toISOString()
-        }
-    };
+  return {
+    ...data,
+    _metadata: {
+      schemaVersion: '1.0',
+      extractedAt: new Date().toISOString(),
+    },
+  };
 }
 
 /**
  * Basic validation for when AI processing fails
  */
 function validateBasicTypes(
-    data: Record<string, any>, 
-    schema: Record<string, StructuredSchema>
+  data: Record<string, any>,
+  schema: Record<string, StructuredSchema>
 ): Record<string, any> {
-    const result: Record<string, any> = {};
-    
-    for (const [field, fieldSchema] of Object.entries(schema)) {
-        if (data[field] === undefined) {
-            continue;
-        }
-        
-        switch (fieldSchema.type) {
-            case 'string':
-                result[field] = String(data[field]);
-                break;
-            case 'number':
-                const num = Number(data[field]);
-                result[field] = isNaN(num) ? 0 : num;
-                break;
-            case 'boolean':
-                result[field] = Boolean(data[field]);
-                break;
-            case 'array':
-                result[field] = Array.isArray(data[field]) ? data[field] : [data[field]];
-                break;
-            default:
-                result[field] = data[field];
-        }
+  const result: Record<string, any> = {};
+
+  for (const [field, fieldSchema] of Object.entries(schema)) {
+    if (data[field] === undefined) {
+      continue;
     }
-    
-    return result;
+
+    switch (fieldSchema.type) {
+      case 'string':
+        result[field] = String(data[field]);
+        break;
+      case 'number':
+        const num = Number(data[field]);
+        result[field] = isNaN(num) ? 0 : num;
+        break;
+      case 'boolean':
+        result[field] = Boolean(data[field]);
+        break;
+      case 'array':
+        result[field] = Array.isArray(data[field]) ? data[field] : [data[field]];
+        break;
+      default:
+        result[field] = data[field];
+    }
+  }
+
+  return result;
 }

@@ -25,9 +25,12 @@ Please read the TERMS.MD - This is an experimental CLI TOOL.
 
 - 🔍 **Smart Extraction**: Extract data from any website using CSS selectors
 - 🤖 **AI-Powered Formatting**: Process extracted data with Google's Gemini LLM
-- 📋 **Schema-Driven**: Create reusable data extraction patterns
+- 📋 **Schema-Driven**: Create reusable data extraction patterns with 10 built-in schemas
 - 📊 **Flexible Output**: Export as JSON or formatted text
+- 🔒 **Secure**: Input validation and secure API key storage
+- 🤝 **Ethical Scraping**: Built-in robots.txt compliance and rate limiting
 - ⚙️ **Customizable**: Extend with your own schemas
+- 🛠️ **Interactive Setup**: Easy configuration wizard for first-time users
 
 ## 📦 Installation
 
@@ -63,7 +66,21 @@ npm link
 
 ## 🚀 Quick Start
 
-### Basic Usage
+### 1. Initial Setup
+
+Run the interactive setup wizard to configure your API key:
+
+```bash
+webform setup
+```
+
+Or set it directly:
+
+```bash
+webform setup --api-key YOUR_GOOGLE_AI_API_KEY
+```
+
+### 2. Basic Usage
 
 Extract data from a webpage using a predefined schema:
 
@@ -81,6 +98,7 @@ webform scrape https://example.com --schema product --llm-output --save output.j
 
 | Command | Description |
 |---------|-------------|
+| `setup` | Interactive setup for API key and model configuration |
 | `scrape` | Extract data from a URL using a schema |
 | `schema list` | List all available schemas |
 | `schema view` | View a specific schema definition |
@@ -90,10 +108,17 @@ webform scrape https://example.com --schema product --llm-output --save output.j
 
 ## 📋 Schemas
 
-Schemas define what data to extract and how to structure it. WebForm comes with several built-in schemas:
+Schemas define what data to extract and how to structure it. WebForm comes with 10 built-in schemas:
 
 - **article**: For news and blog articles
+- **blog-post**: For blog posts with author, categories, and tags
 - **product**: For e-commerce product pages
+- **ecommerce**: For e-commerce products with reviews and specifications
+- **github-repo**: For GitHub repository pages
+- **job-listing**: For job postings with salary and requirements
+- **reddit-post**: For Reddit posts with score and comments
+- **documentation**: For technical documentation pages
+- **real-estate**: For property listings
 - **default**: General-purpose schema
 
 ### Example Schema (article.json)

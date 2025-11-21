@@ -169,7 +169,10 @@ export async function fetchRobotsTxt(domain: string): Promise<RobotsRule[]> {
 /**
  * Check if a URL is allowed by robots.txt
  */
-export async function isAllowedByRobots(url: string, userAgent: string = 'WebForm-CLI'): Promise<{
+export async function isAllowedByRobots(
+  url: string,
+  userAgent: string = 'WebForm-CLI'
+): Promise<{
   allowed: boolean;
   reason?: string;
   crawlDelay?: number;

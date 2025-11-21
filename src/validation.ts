@@ -19,12 +19,14 @@ export function validateUrl(urlString: string): URL {
 
     // Prevent localhost and private IPs (basic check)
     const hostname = url.hostname.toLowerCase();
-    if (hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname === '0.0.0.0' ||
-        hostname.startsWith('192.168.') ||
-        hostname.startsWith('10.') ||
-        hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)) {
+    if (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./)
+    ) {
       console.warn('Warning: Attempting to scrape local/private IP address. Proceed with caution.');
     }
 
@@ -55,11 +57,11 @@ export function validateCssSelector(selector: string): boolean {
 
   // Check for suspicious patterns that might cause issues
   const dangerousPatterns = [
-    /javascript:/i,  // JavaScript injection
-    /data:/i,        // Data URIs
-    /vbscript:/i,    // VBScript
-    /<script/i,      // Script tags
-    /on\w+=/i,       // Event handlers
+    /javascript:/i, // JavaScript injection
+    /data:/i, // Data URIs
+    /vbscript:/i, // VBScript
+    /<script/i, // Script tags
+    /on\w+=/i, // Event handlers
   ];
 
   for (const pattern of dangerousPatterns) {
@@ -96,7 +98,9 @@ export function validateSchemaSelectors(selectors: Record<string, string>): bool
     try {
       validateCssSelector(selector);
     } catch (error) {
-      throw new Error(`Invalid selector for field '${field}': ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Invalid selector for field '${field}': ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
   return true;
