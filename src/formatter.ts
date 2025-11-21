@@ -2,19 +2,46 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { getConfig } from './configManager';
 import { getGoogleApiKey, getGoogleModel } from './utils';
+import { validateApiKey } from './validation';
 import 'dotenv/config'; // Load environment variables
 
 // Create a custom Google AI provider instance
 const createAIProvider = async () => {
-    // First try to get the API key from environment variables, then fallback to config file
-    const configApiKey = await getConfig('gemini_api_key');
-    // Fix: Ensure configApiKey is a string before passing to getGoogleApiKey
-    const apiKey = getGoogleApiKey(typeof configApiKey === 'string' ? configApiKey : undefined);
-    
-    if (!apiKey) {
-        throw new Error('Google AI API key not found. Please set it in the .env file or using "webform config set gemini_api_key YOUR_API_KEY"');
+    // SECURITY: Prioritize environment variables over config file
+    // Config file storage is deprecated for security reasons
+    const envApiKey = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
+
+    let apiKey: string | undefined;
+
+    if (envApiKey) {
+        apiKey = envApiKey;
+    } else {
+        // Fallback to config file (deprecated)
+        const configApiKey = await getConfig('gemini_api_key');
+        if (typeof configApiKey === 'string') {
+            console.warn('⚠️  WARNING: Storing API keys in config files is deprecated and insecure.');
+            console.warn('   Please set GOOGLE_AI_API_KEY environment variable instead.');
+            console.warn('   Example: export GOOGLE_AI_API_KEY=your_key_here');
+            apiKey = configApiKey;
+        }
     }
-    
+
+    if (!apiKey) {
+        throw new Error(
+            'Google AI API key not found.\n' +
+            'Please set the GOOGLE_AI_API_KEY environment variable:\n' +
+            '  export GOOGLE_AI_API_KEY=your_key_here\n' +
+            'Or create a .env file with: GOOGLE_AI_API_KEY=your_key_here'
+        );
+    }
+
+    // Validate API key
+    try {
+        validateApiKey(apiKey);
+    } catch (error) {
+        throw new Error(`Invalid API key: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
     return createGoogleGenerativeAI({
         apiKey: apiKey,
         // Additional custom settings can be added here

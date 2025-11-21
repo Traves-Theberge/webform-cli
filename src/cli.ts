@@ -545,6 +545,26 @@ const yargsInstance = yargs(hideBin(process.argv))
             try {
               const key = argv.key;
               const value = argv.value;
+
+              // Warn users about storing API keys in config files
+              if (key.toLowerCase().includes('api') || key.toLowerCase().includes('key')) {
+                console.log(boxen(
+                  chalk.yellow('⚠️  SECURITY WARNING') + '\n\n' +
+                  'Storing API keys in configuration files is insecure!\n\n' +
+                  'Recommended approach:\n' +
+                  '  1. Create a .env file in your project\n' +
+                  '  2. Add: GOOGLE_AI_API_KEY=your_key_here\n' +
+                  '  3. Add .env to .gitignore\n\n' +
+                  'Or set environment variable:\n' +
+                  '  export GOOGLE_AI_API_KEY=your_key_here',
+                  { padding: 1, borderColor: 'yellow', borderStyle: 'double' }
+                ));
+
+                // Give user a chance to abort
+                console.log(chalk.dim('\nPress Ctrl+C to cancel, or wait 3 seconds to continue...'));
+                await new Promise(resolve => setTimeout(resolve, 3000));
+              }
+
               const spinner = createSpinner(`Setting configuration: ${chalk.cyan(key)}`);
               spinner.start();
 
