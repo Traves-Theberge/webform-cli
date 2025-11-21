@@ -88,6 +88,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input sanitization for URLs, file paths, and CSS selectors
 - Warnings for localhost/private IP scraping attempts
 
+#### ⚙️ Code Quality & Development Tools
+- **ESLint + Prettier** - Automated code quality and formatting
+  - ESLint with TypeScript support and recommended rules
+  - Prettier for consistent code style
+  - npm scripts: `lint`, `lint:fix`, `format`, `format:check`
+
+- **GitHub Actions CI/CD Pipeline** (.github/workflows/ci.yml)
+  - Automated linting on every push/PR
+  - Multi-version Node.js testing (18, 20, 22)
+  - Security audits
+  - Automated npm publishing on version tags
+
+#### 🚦 Rate Limiting (src/rateLimiter.ts)
+- **Per-domain rate limiting** to prevent API abuse
+  - Default: 10 requests per minute
+  - Minimum 2 seconds between requests
+  - Configurable per-domain settings
+  - Automatic waiting when limits reached
+  - Real-time statistics and monitoring
+  - Respects robots.txt crawl-delay directives
+
+#### 🤖 Robots.txt Compliance (src/robotsChecker.ts)
+- **Ethical scraping with robots.txt checking**
+  - Automatic robots.txt fetching and parsing
+  - Respects disallow/allow rules
+  - Honors crawl-delay directives
+  - 24-hour cache for performance
+  - Wildcard pattern matching support
+  - Integrated with rate limiter
+  - Enabled by default (can be disabled)
+
+#### 📚 Diverse Schema Examples
+Created 7 production-ready schemas for common use cases:
+- **blog-post.json** - Generic blog articles (9 fields with semantic selectors)
+- **github-repo.json** - GitHub repositories (stars, forks, README, etc.)
+- **job-listing.json** - Job postings (title, company, salary, requirements)
+- **reddit-post.json** - Reddit posts (score, comments, flair)
+- **documentation.json** - Documentation pages (with code examples, TOC)
+- **real-estate.json** - Property listings (price, bedrooms, features)
+- **ecommerce.json** - E-commerce products (price, rating, reviews, specs)
+
+All schemas include:
+- Multiple selector fallbacks for reliability
+- Structured type definitions
+- Field descriptions
+- Proper nullable specifications
+- Support for both simple and array data
+
 ## [1.0.0] - 2025-01-XX
 
 ### Added
